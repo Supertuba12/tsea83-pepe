@@ -93,7 +93,31 @@ begin
       end if;
     end if;
   end process;
-	
+
+  -- ALU component
+  process(clk)
+  begin
+    if rising_edge(clk) then
+      if (rst = '1') then
+        -- Maybe reset AR?
+      elsif () then
+        
+      end if;
+    end if;
+  end process; 
+
+  -- General registers 
+	process(clk)
+  begin
+    if rising_edge(clk) then
+      if (rst = '1') then
+        -- Reset all registers?
+      elsif () then
+
+      end if;
+    end if;
+  end process;
+
   -- micro memory component connection
   U0 : uMem port map(uAddr=>uPC, uData=>uM);
 
