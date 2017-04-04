@@ -1,0 +1,18 @@
+;SUBROUTINE        OP       ARG1,ARG2
+; $XXXXXX -> adress
+; #XX -> decimal (omedelbar)
+; ; -> kommentar
+
+; LOAD      DEST,#VAL/$ADR
+
+MAIN        LOAD        GR0,#40 ; Test
+            JMP         MAIN
+            ADD         GR0,#21
+TEST        STORE       GR1,#21
+            STORE       GR0,$34
+            JMP         TEST
+TEST2       SUB         GR0,#21
+            CMP         GR0,$30
+            BGE         TEST
+            JMP         TEST2
+            HALT
