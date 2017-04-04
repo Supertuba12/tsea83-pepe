@@ -1,0 +1,8 @@
+;SUBROUTINE        OP       ARG1,ARG2
+; $XXXXXX -> adress
+; #XX -> decimal (omedelbar)
+; ; -> kommentar
+
+MAIN    
+LOAD
+
