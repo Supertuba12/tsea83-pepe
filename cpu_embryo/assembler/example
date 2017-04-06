@@ -8,3 +8,4 @@
             HALT
 MAIN        LOAD        GR0,#40
             JMP         MAIN
+            ADD         GR0,#21
