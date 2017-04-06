@@ -9,3 +9,6 @@
 MAIN        LOAD        GR0,#40
             JMP         MAIN
             ADD         GR0,#21
+TEST        STORE       GR1,#21
+            STORE       GR0,$34
+            JMP         TEST

@@ -1,4 +1,8 @@
-def eval_args(line, opcodes, adrmodes, adr):
+""" Commented output for debugging """
+COMMENTS = True
+
+def eval_args(line, adrmodes, adr):
+    """ Evaluates adress mode and GRx memory """
     direct = False
 
     if line[0] == "GR0":
@@ -25,30 +29,56 @@ def eval_args(line, opcodes, adrmodes, adr):
 
 def load(line, opcodes, adrmodes, adr):
     line = line[0].split(',')
-    arg_result = eval_args(line, opcodes, adrmodes, adr)
+    arg_result = eval_args(line, adrmodes, adr)
     direct = arg_result[0]
     tail_num = arg_result[1]
 
-    if direct:
-        return opcodes['LOAD'] + tail_num + "\n" + format(int(line[1][1:], 16), '04x')
+    if COMMENTS:
+        if direct:
+            return opcodes['LOAD'] + tail_num + "; LOAD\n" + format(int(line[1][1:], 16), '04x')
+        else:
+            return opcodes['LOAD'] + tail_num + "; LOAD"
     else:
-        return opcodes['LOAD'] + tail_num
+        if direct:
+            return opcodes['LOAD'] + tail_num + "\n" + format(int(line[1][1:], 16), '04x')
+        else:
+            return opcodes['LOAD'] + tail_num
 
 
-def store(line):
-    pass
+def store(line, opcodes, adrmodes, adr):
+    line = line[0].split(',')
+    arg_result = eval_args(line, adrmodes, adr)
+    direct = arg_result[0]
+    tail_num = arg_result[1]
+
+    if COMMENTS:
+        if direct:
+            return opcodes['STORE'] + tail_num + "; STORE\n" + format(int(line[1][1:], 16), '04x')
+        else:
+            return opcodes['STORE'] + tail_num + "; STORE"
+    else:
+        if direct:
+            return opcodes['STORE'] + tail_num + "\n" + format(int(line[1][1:], 16), '04x')
+        else:
+            return opcodes['STORE'] + tail_num
 
 
 def add(line, opcodes, adrmodes, adr):
     line = line[0].split(',')
-    arg_result = eval_args(line, opcodes, adrmodes, adr)
+    arg_result = eval_args(line, adrmodes, adr)
     direct = arg_result[0]
     tail_num = arg_result[1]
 
-    if direct:
-        return opcodes['ADD'] + tail_num + "\n" + format(int(line[1][1:], 16), '04x')
+    if COMMENTS:
+        if direct:
+            return opcodes['ADD'] + tail_num + "; ADD\n" + format(int(line[1][1:], 16), '04x')
+        else:
+            return opcodes['ADD'] + tail_num + "; ADD"
     else:
-        return opcodes['ADD'] + tail_num
+        if direct:
+            return opcodes['ADD'] + tail_num + "\n" + format(int(line[1][1:], 16), '04x')
+        else:
+            return opcodes['ADD'] + tail_num
 
 
 def sub():
@@ -68,9 +98,15 @@ def op_and():
 
 
 def halt(opcodes):
-    return opcodes['HALT'] + "000"
+    if COMMENTS:
+        return opcodes['HALT'] + "000; HALT"
+    else:
+        return opcodes['HALT'] + "000"
 
 
 def jmp(line, opcodes, adr, subr):
     adr_pos = format(subr[line[0]], '03x')
-    return opcodes['JMP'] + adr_pos
+    if COMMENTS:
+        return opcodes['JMP'] + adr_pos + "; JMP"
+    else:
+        return opcodes['JMP'] + adr_pos
