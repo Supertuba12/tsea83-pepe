@@ -3,6 +3,7 @@
 ; #XX -> decimal (omedelbar)
 ; ; -> kommentar
 
-MAIN    
-LOAD
+; LOAD      DEST,#VAL/$ADR
 
+HALT
+LOAD  GR0,$40
