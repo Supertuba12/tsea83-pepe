@@ -1,9 +1,11 @@
 """
     ~ Assembler for TSEA83 project ~
     Run with: python3 -c 'from assemble import *; assemble("example", "settings")'
+          or: python3 assemble.py example settings
 
     Output implemntation in opcalls.py
 """
+import sys
 import opcalls
 
 def assemble(assembly, settings):
@@ -31,7 +33,7 @@ def assemble(assembly, settings):
 
             print("OPCODE: ", line[0:2])
             output = ""
-            if len(line) == 1: # HALT
+            if len(line) == 1 or ";" in line[1]: # HALT
                 output = (handler(line[0]))(opcodes)
             elif "," not in line[1]: # JMP, BGE, BEQ etc
                 output = (handler(line[0]))(line[1:2], opcodes, subr)
@@ -82,3 +84,6 @@ def unpack(file):
         unpacked_values[line[0]] = line[1].rstrip()
 
     return unpacked_values
+
+if __name__ == "__main__":
+    assemble(sys.argv[1], sys.argv[2])

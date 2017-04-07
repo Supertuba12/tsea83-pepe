@@ -15,4 +15,4 @@ TEST2       SUB         GR0,#21
             CMP         GR0,$30
             BGE         TEST
             JMP         TEST2
-            HALT
+            HALT        ; halt
