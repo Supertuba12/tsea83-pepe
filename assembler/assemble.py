@@ -18,6 +18,9 @@ def assemble(assembly, settings):
     subr = {}
     adr = [0]
 
+    eval_subr(assembly, adr, subr, opcodes)
+    adr = [0]
+
     with open(assembly) as asm_file:
         for line in asm_file:
             line = line.split()
@@ -25,11 +28,10 @@ def assemble(assembly, settings):
                 continue
 
             if not line[0] in opcodes:
-                subr[line[0]] = adr[0]
                 if len(line) > 0:
                     line.remove(line[0])
                 else:
-                    break
+                    continue
 
             print("OPCODE: ", line[0:2])
             output = ""
@@ -45,6 +47,32 @@ def assemble(assembly, settings):
             adr[0] += 1
 
     output_file.close()
+
+
+def eval_subr(assembly, adr, subr, opcodes):
+    """ Finds all subroutines """
+    with open(assembly) as asm_file:
+        for line in asm_file:
+            line = line.split()
+            if not line or ";" in line[0]:
+                continue
+
+            if not line[0] in opcodes:
+                subr[line[0]] = adr[0]
+                if len(line) > 0:
+                    line.remove(line[0])
+                else:
+                    continue
+
+            if len(line) == 1 or ";" in line[1]: # HALT
+                pass
+            elif "," not in line[1]: # JMP, BGE, BEQ etc
+                pass
+            else: # STORE, LOAD, ADD, SUB etc
+                if "#" in line[2]:
+                    adr[0] += 1
+
+            adr[0] += 1
 
 
 def handler(opcode):
