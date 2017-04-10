@@ -1,5 +1,5 @@
 """ Commented output for debugging """
-COMMENTS = True
+COMMENTS = False
 
 def eval_args(line, adrmodes, adr):
     """ Evaluates adress mode and GRx memory """
