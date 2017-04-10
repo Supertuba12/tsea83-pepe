@@ -19,6 +19,7 @@ def assemble(assembly, settings):
     adr = [0]
 
     eval_subr(assembly, adr, subr, opcodes)
+    print(subr)
     adr = [0]
 
     with open(assembly) as asm_file:
@@ -69,7 +70,7 @@ def eval_subr(assembly, adr, subr, opcodes):
             elif "," not in line[1]: # JMP, BGE, BEQ etc
                 pass
             else: # STORE, LOAD, ADD, SUB etc
-                if "#" in line[2]:
+                if "#" in line[1]:
                     adr[0] += 1
 
             adr[0] += 1
