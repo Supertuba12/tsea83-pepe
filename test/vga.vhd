@@ -24,20 +24,16 @@ end VGA;
 architecture Behavioral of VGA is
   signal  data            : std_logic_vector(7 downto 0);
   signal  Xpixel          : unsigned(9 downto 0);         -- Horizontal pixel counter
-  signal  X_act		  : integer;
   signal  Ypixel          : unsigned(9 downto 0);		      -- Vertical pixel counter
-  signal  tile            : integer;
-  signal  Y_tile          : integer;
-  signal  Y_act           : integer;
   signal  ClkDiv          : unsigned(1 downto 0);		      -- Clock divisor, to generate 25 MHz signal
   signal  Clk25           : std_logic;			              -- One pulse width 25 MHz signal
   signal  x_p		  : integer;
   signal  y_p		  : integer;  
   signal  tilePixel       : std_logic_vector(7 downto 0);	-- Tile pixel data
+  signal  home		  : integer;
 
   signal  blank           : std_logic;                    -- blanking signal
-  signal  home_tile       : integer;
-  signal  home_pixel      : integer;
+
   component ram
       port (
           clk       : in std_logic;
@@ -117,27 +113,14 @@ begin
     if Clk25 = '1' and Xpixel = 799 then
       if Ypixel = 520 then	-- vi har nått slutet av pixelantalet
         Ypixel <= (others => '0');
-        Y_act <= home_tile;
-        if home_pixel = 7 and home_tile = 71 then
-          home_tile <= 0;
-          home_pixel <= 0;
-        elsif home_pixel = 7 then
-          home_tile <= home_tile + 1;
-          home_pixel <= 0;
-        else
-          home_pixel <= home_pixel + 1;
-	end if;
+	if home = 0 then
+	   home <= 71;
+	else
+	   home <= home - 1;
+        end if;
       else 
         Ypixel <= Ypixel + 1;
-        if Y_tile = 7 and Y_act = 71 then
-          Y_act <= 0;
-          Y_tile <= 0;
-        elsif Y_tile = 7 then
-          Y_tile <= 0;
-          Y_act <= Y_act + 1;
-        else
-          Y_tile <= Y_tile + 1;
-	end if;
+
       end if;
     end if;
   end if;
@@ -163,10 +146,10 @@ begin
   -- *  Blank                          *
   -- *                                 *
   -- ***********************************
-
+  
   blank <= '1' when ((Xpixel > 639 and Xpixel <= 799) or (Ypixel > 479 and Ypixel <= 520)) else '0';
-  x_p <= to_integer(Xpixel(9 downto 3));
-  y_p <= to_integer(Ypixel(9 downto 3));
+  y_p <= (to_integer(Ypixel(9 downto 3)) + home) when (to_integer(Ypixel(9 downto 3)) + home) < 72 else (to_integer(Ypixel(9 downto 3)) - (home + 12));
+  x_p <= (to_integer(Xpixel(9 downto 3)) - 29);
 
   bildmem : ram
 	port map (
