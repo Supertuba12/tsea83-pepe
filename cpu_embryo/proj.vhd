@@ -13,8 +13,8 @@ architecture Behavioral of proj is
 
   -- micro Memory component
   component em
-    port(uAddr : in unsigned(5 downto 0);
-         uData : out unsigned(19 downto 0));
+    port(uAddr : in unsigned(7 downto 0);
+         uData : out unsigned(21 downto 0));
   end component;
 
   -- program Memory component
@@ -24,19 +24,19 @@ architecture Behavioral of proj is
   end component;
   
   -- micro memory signals
-  signal uM : unsigned(19 downto 0); -- micro Memory output
-  signal uPC : unsigned(5 downto 0); -- micro Program Counter
-  signal SEQ : unsigned(3 downto 0); -- uPC controller
-  signal uAddr : unsigned(5 downto 0); -- micro Address
-  signal TB : unsigned(2 downto 0); -- To Bus field
-  signal FB : unsigned(2 downto 0); -- From Bus field
-	signal ALU : unsigned(2 downto 0); -- ALU operand
+  signal uM : unsigned(21 downto 0); -- micro Memory output
+  signal uPC : unsigned(7 downto 0); -- micro Program Counter
+  signal SEQ : unsigned(3 downto 0); -- uPC controller ###NOT USED###
+  signal uAddr : unsigned(7 downto 0); -- micro Address ###NOT USED###
+  signal TB : unsigned(2 downto 0); -- To Bus field ###NOT USED###
+  signal FB : unsigned(2 downto 0); -- From Bus field ###NOT USED###
+	signal ALU : unsigned(2 downto 0); -- ALU operand ###NOT USED###
   signal K1 : unsigned (7 downto 0); -- K1 signal
   signal K2 : unsigned (7 downto 0); -- K2 signal
   -- program memory signals
   signal PM : unsigned(15 downto 0); -- Program Memory output
   signal PC : unsigned(15 downto 0); -- Program Counter
-  signal Pcsig : std_logic; -- 0:PC=PC, 1:PC++
+  signal PCsig : std_logic; -- 0:PC=PC, 1:PC++ ###NOT USED###
   signal ASR : unsigned(15 downto 0); -- Address Register
   signal IR : unsigned(15 downto 0); -- Instruction Register
   signal DATA_BUS : unsigned(15 downto 0); -- Data Bus
@@ -59,11 +59,33 @@ begin
     if rising_edge(clk) then
       if (rst = '1') then
         uPC <= (others => '0');
-      elsif (SEQ = '') then
-        uPC <= uAddr;
-      else
-        uPC <= uPC + 1;
       end if;
+      case SEQ is
+        when "0000" =>
+          uPC <= uPC + 1;
+        when "0001" =>
+          uPC <= K1;
+        when "0010" =>
+          uPC <= K2;
+        when "0011" =>
+          uPC <= 0;
+        when "1000" =>
+          if (Z = '1') then -- If flagged value zero -> jump to given adress
+            uPC = uAddr;
+          end if;
+        when "1001" =>
+          if (N = '1') then -- If flagged negative value -> jump to given adress
+            uPC = uAddr;
+          end if;
+        when "1011" =>
+          if (O = '1')  -- If flagged overflow -> jump to given adress
+            uPC = uAddr;
+          end if;
+        when "1111" =>
+          -- SHUT THE MACHINE DOWN!!!
+        when others =>
+          null;
+      end case;
     end if;
   end process;
 	
@@ -99,7 +121,7 @@ begin
     if rising_edge(clk) then
       if (rst = '1') then
         ASR <= (others => '0');
-      elsif (FB = "100") then
+      elsif (FB = "111") then
         ASR <= DATA_BUS;
       end if;
     end if;
@@ -111,6 +133,7 @@ begin
     if rising_edge(clk) then
       if (rst = '1') then
         -- Maybe reset AR?
+        AR <= (others => '0');
       end if;
       case SEQ is
         when "001" => -- AR := BUSS
@@ -144,17 +167,21 @@ begin
   end process;
 
   -- K1 memory
-  with ALU select K1 <=
-    to_unsigned(X"00") when "0000"
-    to_unsigned(X"00") when "0001"
-    to_unsigned(X"00") when "0010"
-    to_unsigned(X"00") when "0011"
-    to_unsigned(X"00") when "0100"
-    to_unsigned(X"00") when "0101"
-    to_unsigned(X"00") when "0110"
-    to_unsigned(X"00") when "0111"
-  
+  with IR(15 downto 12) select K1 <=
+    to_unsigned(x"05") when "0000", -- Micro adress to LOAD
+    to_unsigned(x"06") when "0001", -- Micro adress to STORE
+    to_unsigned(x"07") when "0010", -- Micro adress to ADD
+    to_unsigned(x"0A") when "0011", -- Micro adress to SUB
+    to_unsigned(x"0D") when "0100", -- Micro adress to AND
+    to_unsigned(x"10") when "0101", -- Micro adress to BGE
+    to_unsigned(x"15") when "0110", -- Micro adress to JMP
+    to_unsigned(x"16") when "0111", -- Micro adress to CMP
+    to_unsigned(x"19") when "1000"; -- Micro adress to HALT
+        
   -- K2 assignment
+  with IR(9 downto 8) select K2 <=
+    to_unsigned(x"03") when "0", -- Direct mode
+    to_unsigned(x"04") when "1"; -- Immediate mode
 
 
   -- micro memory component connection
@@ -164,21 +191,35 @@ begin
   U1 : pMem port map(pAddr=>ASR, pData=>PM);
 	
   -- micro memory signal assignments
-  uAddr <= (5 downto 0);
-  SEQ <= (9 downto 6);
-  PCsig <= (10);
-  FB <= (13 downto 11);
-  TB <= (16 downto 14);
-  ALU <= (19 downto 17)
+  -- uAddr <= uM(7 downto 0);
+  -- SEQ <= uM(11 downto 8);
+  -- PCsig <= uM(12);
+  -- FB <= uM(15 downto 13);
+  -- TB <= uM(18 downto 16);
+  -- ALU <= uM(21 downto 19)
+
+  -- Alias declaration for micro memory signal uM
+  alias uAddr : unsigned(7 downto 0) is uM(7 downto 0);
+  alias SEQ : unsigned(3 downto 0) is uM(11 downto 8);
+  alias PCsig : std_logic is uM(12);
+  alias FB : unsigned(2 downto 0) is uM(15 downto 13);
+  alias TB : unsigned(2 downto 0) is uM(18 downto 16);
+  alias ALU : unsigned(2 downto 0) is uM(21 downto 19)
 	
+  -- Alias declaration for instruction register sequences
+  alias OP : unsigned(3 downto 0) is IR(15 downto 12);
+  alias GR : std_logic is IR(11);
+  alias addrM : std_logic is IR(10);
+  alias PMaddr : unsigned(9 downto 0) is IR(9 downto 0);
+
   -- data bus assignment
-  DATA_BUS <= IR when (TB = "001") else
+  DATA_BUS <= 
+    IR when (TB = "001") else
     PM when (TB = "010") else
     PC when (TB = "011") else
-    ASR when (TB = "100") else
-    AR when (TB = "101") else
-    HELP_REG when (TB = "110") else
-    GRX when (TB = "111")
+    AR when (TB = "100") else
+    HELP_REG when (TB = "101") else
+    GRX when (TB = "110")
     (others => '0');
 
 end Behavioral;
