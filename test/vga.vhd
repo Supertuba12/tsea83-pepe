@@ -11,9 +11,6 @@ use IEEE.NUMERIC_STD.ALL;               -- IEEE library for the unsigned type
 -- entity
 entity VGA is
   port ( clk          : in std_logic;
-    data              : in std_logic_vector(7 downto 0);
-    x_p               : out integer;
-    y_p               : out integer;
     rst               : in std_logic;
     vgaRed            : out std_logic_vector(2 downto 0);
     vgaGreen          : out std_logic_vector(2 downto 0);
@@ -25,15 +22,17 @@ end VGA;
 
 -- architecture
 architecture Behavioral of VGA is
-
+  signal  data            : std_logic_vector(7 downto 0);
   signal  Xpixel          : unsigned(9 downto 0);         -- Horizontal pixel counter
+  signal  X_act		  : integer;
   signal  Ypixel          : unsigned(9 downto 0);		      -- Vertical pixel counter
   signal  tile            : integer;
   signal  Y_tile          : integer;
   signal  Y_act           : integer;
   signal  ClkDiv          : unsigned(1 downto 0);		      -- Clock divisor, to generate 25 MHz signal
   signal  Clk25           : std_logic;			              -- One pulse width 25 MHz signal
-    
+  signal  x_p		  : integer;
+  signal  y_p		  : integer;  
   signal  tilePixel       : std_logic_vector(7 downto 0);	-- Tile pixel data
 
   signal  blank           : std_logic;                    -- blanking signal
@@ -44,7 +43,7 @@ architecture Behavioral of VGA is
           clk       : in std_logic;
           x         : in integer;
           y         : in integer;
-          data_o    : out std_logic_vector(7 downto 0)
+          data_out  : out std_logic_vector(7 downto 0)
           );
   end component;
 begin
@@ -120,23 +119,25 @@ begin
         Ypixel <= (others => '0');
         Y_act <= home_tile;
         if home_pixel = 7 and home_tile = 71 then
-          home_tile <= '0';
-          home_pixel <= '0';
+          home_tile <= 0;
+          home_pixel <= 0;
         elsif home_pixel = 7 then
           home_tile <= home_tile + 1;
-          home_pixel <= '0';
+          home_pixel <= 0;
         else
           home_pixel <= home_pixel + 1;
+	end if;
       else 
         Ypixel <= Ypixel + 1;
         if Y_tile = 7 and Y_act = 71 then
-          Y_act <= '0';
-          Y_tile <= '0';
+          Y_act <= 0;
+          Y_tile <= 0;
         elsif Y_tile = 7 then
-          Y_tile <= '0';
-          Y_act = Y_act + 1;
+          Y_tile <= 0;
+          Y_act <= Y_act + 1;
         else
           Y_tile <= Y_tile + 1;
+	end if;
       end if;
     end if;
   end if;
@@ -164,16 +165,23 @@ begin
   -- ***********************************
 
   blank <= '1' when ((Xpixel > 639 and Xpixel <= 799) or (Ypixel > 479 and Ypixel <= 520)) else '0';
-  
-  x_p <= Xpixel;
-  x_y <= Y_act;
+  x_p <= to_integer(Xpixel(9 downto 3));
+  y_p <= to_integer(Ypixel(9 downto 3));
+
+  bildmem : ram
+	port map (
+		clk=> clk,
+		x => x_p,
+		y => y_p,
+		data_out => data);
+
   -- Tile memory
   process(clk)
   begin
     if rising_edge(clk) then
       if (blank = '0') then
         if (Xpixel > 239) then
-          tilePixel <= ram(x_p, y_p);
+          tilePixel <= data;
         else
           tilePixel <= (others => '0');                  -- TODO: Highscore området till vänster på skärmen
         end if;
@@ -184,6 +192,13 @@ begin
   end process;
 
   -- VGA generation
-  (vgaRed, vgaGreen, vgaBlue) <= tilePixel;
+  vgaRed(2) 	<= tilePixel(7);
+  vgaRed(1) 	<= tilePixel(6);
+  vgaRed(0) 	<= tilePixel(5);
+  vgaGreen(2)   <= tilePixel(4);
+  vgaGreen(1)   <= tilePixel(3);
+  vgaGreen(0)   <= tilePixel(2);
+  vgaBlue(2) 	<= tilePixel(1);
+  vgaBlue(1) 	<= tilePixel(0);
 
 end Behavioral;

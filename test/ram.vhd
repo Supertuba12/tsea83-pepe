@@ -7,13 +7,13 @@ port (
         clk         : in std_logic;
         x           : in integer;
         y           : in integer;
-        data_out    : out std_logic_vector(7 downto 0);
+        data_out    : out std_logic_vector(7 downto 0));
 end ram;
 
 architecture Behavioral of ram is
 
     type ram_t is array (0 to 3599) of std_logic_vector(7 downto 0);
-    type ram : ram_t :=(
+    signal ram : ram_t :=(
         x"70", x"FF", x"FF", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", 
         x"70", x"FF", x"FF", x"FF", x"FF", x"70", x"70", x"FF", x"FF", x"70", x"FF", x"FF", x"70", x"70", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", x"FF", 
         x"70", x"70", x"FF", x"FF", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"70", x"FF", x"70", x"70", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"70", x"70", x"FF", x"FF", x"FF", x"70", x"FF", x"70", x"FF", x"FF", x"70", x"FF", x"FF", x"FF", x"FF", x"70", x"70", x"FF", x"FF", x"FF", x"70", x"FF", x"FF", x"70", x"70", x"FF", x"FF", x"FF", x"FF", x"FF", 
@@ -103,9 +103,9 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            data_out <= ram(x,y);
-            end if;
-            
+            data_out <= ram(y*50 + x);
+        end if;
+    end process;    
 
 
 
