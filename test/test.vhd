@@ -15,7 +15,7 @@ entity test is
         Hsync             : out std_logic;                        -- horizontal sync
         Vsync             : out std_logic;                        -- vertical sync
         vgaRed            : out	std_logic_vector(2 downto 0);     -- VGA red
-        vga Green         : out std_logic_vector(2 downto 0);     -- VGA green
+        vgaGreen         : out std_logic_vector(2 downto 0);     -- VGA green
         vgaBlue           : out std_logic_vector(2 downto 1));    -- VGA blue
 end test;
 
@@ -32,15 +32,15 @@ architecture Behavioral of test is
   end component;
   component ram
     port (clk         : in std_logic;
-          x           : in integer;
-          y           : in integer;
+          x           : in unsigned(6 downto 0);
+          y           : in unsigned(6 downto 0);
           data_out    : out std_logic_vector(7 downto 0));
   end component;
 
   -- intermediate signals between PICT_MEM and VGA_MOTOR
   signal data_out_s     : std_logic_vector(7 downto 0);         -- data
-  signal x_s            : integer;                              -- x address
-  signal y_s            : integer;                              -- y address  
+  signal x_s            : unsigned(6 downto 0);                              -- x address
+  signal y_s            : unsigned(6 downto 0);                              -- y address  
 begin
 
   -- picture memory component connection

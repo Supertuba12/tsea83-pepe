@@ -25,18 +25,23 @@ architecture Behavioral of VGA is
   signal  Ypixel          : unsigned(9 downto 0);         -- Vertical pixel counter
   signal  ClkDiv          : unsigned(1 downto 0);         -- Clock divisor, to generate 25 MHz signal
   signal  Clk25           : std_logic;                    -- One pulse width 25 MHz signal
-  signal  x_p             : integer;
-  signal  y_p             : integer;  
+  signal  x_p             : unsigned(6 downto 0);
+  signal  y_p             : unsigned(6 downto 0);
   signal  tilePixel       : std_logic_vector(7 downto 0); -- Tile pixel data
-  signal  home            : integer;
-
+  signal  home            : unsigned(6 downto 0);         -- Home points at Y in array (0-71)
+  signal  home_cp         : unsigned(6 downto 0);
+  signal  start_y         : unsigned(2 downto 0);
+  signal  start_y_cp      : unsigned(2 downto 0);
+  signal  time_clk        : unsigned(0 downto 0);         -- When the screen should scroll
+  signal  game_enable     : std_logic;                    -- Game only progress on rising_edge of time_clk
   signal  blank           : std_logic;                    -- blanking signal
+  signal  xtile           : unsigned(6 downto 0);
 
   component ram
       port (
           clk       : in std_logic;
-          x         : in integer;
-          y         : in integer;
+          x         : in unsigned;
+          y         : in unsigned;
           data_out  : out std_logic_vector(7 downto 0)
           );
   end component;
@@ -47,28 +52,30 @@ begin
   process(clk)
   begin
     if rising_edge(clk) then
-      if rst='1' then
-        ClkDiv <= (others => '0');
-      else
-        ClkDiv <= ClkDiv + 1;
-      end if;
+      ClkDiv <= ClkDiv + 1;
     end if;
   end process;
 
   -- 25 MHz clock (one system clock pulse width)
   Clk25 <= '1' when (ClkDiv = 3) else '0';
 
-  -- Horizontal pixel counter
+  -- Xpixel incrementation at 60Hz
   process(clk)
   begin
-  if rst = '1' then
-    Xpixel <= (others => '0');
-  elsif rising_edge(clk) then
+  if rising_edge(clk) then
     if Clk25 = '1' then
-      if Xpixel = 799 then    -- vi har nått slutet av pixelantalet
+      if Xpixel = 799 then    -- vi har nÃ¥tt slutet av pixelantalet
         Xpixel <= (others => '0');
       else
         Xpixel <= Xpixel + 1;
+      end if;
+
+      if Xpixel > 247 and Xpixel < 640 then
+        if Xpixel(2 downto 0) = 0 then
+          xtile <= xtile + 1;
+        end if;
+      else
+        xtile <= (others => '0');
       end if;
     end if;
   end if;
@@ -78,27 +85,58 @@ begin
   -- Horizontal sync
   Hsync <= '0' when ((Xpixel > 655) and (Xpixel <= 751)) else '1'; 
 
-  -- Vertical pixel counter
+
+  -- Ypixel incrementation at 60Hz
   process(clk)
   begin
-    if rst = '1' then
-      Ypixel <= (others => '0');
-    elsif rising_edge(clk) then
+    if rising_edge(clk) then
       if Clk25 = '1' and Xpixel = 799 then
-        if Ypixel = 520 then	-- vi har nått slutet av pixelantalet
+        if Ypixel = 520 then
           Ypixel <= (others => '0');
-          if home = 0 then
-            home <= 71;
-          else
-            home <= home - 1;
+          time_clk <= time_clk + 1;
+        elsif Ypixel = 480 then
+          home_cp <= home;
+          start_y_cp <= start_y;
+          Ypixel <= Ypixel + 1;
+        else
+          Ypixel <= Ypixel + 1;
+          if Ypixel < 480 then
+            start_y_cp <= start_y_cp + 1;
+            if start_y_cp = 0 then
+              if home_cp = 71 then
+                home_cp <= "0000000";
+              else
+                home_cp <= home_cp + 1;
+              end if;
+            end if;
           end if;
-        else 
-          Ypixel <= Ypixel + 1
         end if;
       end if;
     end if;
   end process;
 
+
+-- Home pointer handler
+  process(clk)
+  begin
+    if rising_edge(clk) then
+      if time_clk = 1 then
+        if game_enable = '0' then
+          game_enable <= '1';
+          if start_y = 1 then
+            if home = 0 then
+              home <= "1000111";
+            else
+              home <= home - 1;
+            end if;
+          end if;
+          start_y <= start_y - 1;
+        end if;
+      else
+        game_enable <= '0';
+      end if;
+    end if;
+  end process;
 
   -- Vertical sync
   Vsync <= '0' when ((Ypixel > 489) and (Ypixel <= 491)) else '1';
@@ -106,8 +144,8 @@ begin
   -- Video blanking signal
   blank <= '1' when ((Xpixel > 639 and Xpixel <= 799) or (Ypixel > 479 and Ypixel <= 520)) else '0';
 
-  y_p <= (to_integer(Ypixel(9 downto 3)) + home) when (to_integer(Ypixel(9 downto 3)) + home) < 72 else (to_integer(Ypixel(9 downto 3)) - (home + 12));
-  x_p <= (to_integer(Xpixel(9 downto 3)) - 29);
+  y_p <= home_cp;
+  x_p <= xtile;
 
   bildmem : ram
   port map (
@@ -124,7 +162,7 @@ begin
         if (Xpixel > 239) then
           tilePixel <= data;
         else
-          tilePixel <= (others => '0');                  -- TODO: Highscore området till vänster på skärmen
+          tilePixel <= (others => '0');
         end if;
       else
         tilePixel <= (others => '0');
