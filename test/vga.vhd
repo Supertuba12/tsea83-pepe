@@ -73,7 +73,7 @@ begin
     end if;
   end if;
   end process;
-    
+
 
   -- Horizontal sync
   Hsync <= '0' when ((Xpixel > 655) and (Xpixel <= 751)) else '1'; 
