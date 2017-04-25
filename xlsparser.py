@@ -1,0 +1,36 @@
+#!usr/bin/python3
+
+import sys
+import openpyxl
+from openpyxl import load_workbook
+
+for xlsx_file in sys.argv[1:]:
+    wb = load_workbook(filename=xlsx_file)
+    ws = wb.active
+
+    fd = open("tiles.txt", "w+")
+    print("Opening {0}...".format(xlsx_file))
+    i = 0
+    cell_range = ws['A1':'AX72']
+    for col in cell_range:
+        for cell in col:
+            i += 1
+            color = cell.fill.start_color.index
+
+            red = int(color[2:4], 16)
+            green = int(color[4:6], 16)
+            blue = int(color[6:8], 16)
+            red_8 = (red * 7) // 255
+            green_8 = (green * 7) // 255
+            blue_8 = (blue * 3) // 255
+
+            binary_val = format(red_8, '03b') + format(green_8, '03b') + format(blue_8, '02b')
+            output = format(int(binary_val, 2), "02x")
+            print(color, " - ", output)
+
+            fd.write("x\"" + output + "\", ")
+            if i % 300 == 0:
+                fd.write("\n")
+        fd.write("\n")
+    fd.close()
+    print("File {0} closed.".format(xlsx_file))
