@@ -15,12 +15,15 @@ entity VGA is
     vgaGreen          : out std_logic_vector(2 downto 0);
     vgaBlue           : out std_logic_vector(2 downto 1);
     Hsync             : out std_logic;
-    Vsync             : out std_logic);
+    Vsync             : out std_logic;
+    PS2KeyboardClk	  : in std_logic; 		-- USB keyboard PS2 clock
+    PS2KeyboardData	  : in std_logic);
 end VGA;
 
 -- architecture
 architecture Behavioral of VGA is
   signal  data            : std_logic_vector(7 downto 0);
+  signal  sprite_data     : std_logic_vector(7 downto 0);
   signal  Xpixel          : unsigned(9 downto 0);         -- Horizontal pixel counter
   signal  Ypixel          : unsigned(9 downto 0);         -- Vertical pixel counter
   signal  ClkDiv          : unsigned(1 downto 0);         -- Clock divisor, to generate 25 MHz signal
@@ -28,22 +31,47 @@ architecture Behavioral of VGA is
   signal  x_p             : unsigned(6 downto 0);
   signal  y_p             : unsigned(6 downto 0);
   signal  tilePixel       : std_logic_vector(7 downto 0); -- Tile pixel data
-  signal  home            : unsigned(6 downto 0);         -- Home points at Y in array (0-71)
-  signal  home_cp         : unsigned(6 downto 0);
-  signal  start_y         : unsigned(2 downto 0);
-  signal  start_y_cp      : unsigned(2 downto 0);
+  signal  home            : unsigned(3 downto 0);         -- Home points at Y in array (0-71)
+  signal  home_cp         : unsigned(3 downto 0);
+  signal  start_y_p       : unsigned(2 downto 0);
+  signal  start_y_p_cp    : unsigned(2 downto 0);
+  signal  y_tile          : unsigned(6 downto 0);
+  signal  y_tile_cp       : unsigned(6 downto 0);
+  signal  tile_index      : unsigned(3 downto 0);
   signal  time_clk        : unsigned(0 downto 0);         -- When the screen should scroll
   signal  game_enable     : std_logic;                    -- Game only progress on rising_edge of time_clk
   signal  blank           : std_logic;                    -- blanking signal
   signal  xtile           : unsigned(6 downto 0);
+  signal  x_out           : unsigned(9 downto 0);
+  signal  y_out           : unsigned(9 downto 0);
+  signal  Xpepe           : unsigned(9 downto 0) := "0110101000";
+  signal  Ypepe           : unsigned(9 downto 0) := "0111000000";
+  signal  x_plus          : unsigned(0 downto 0);
+  signal  x_minus         : unsigned(0 downto 0);
 
+  type lut_t is array (0 to 11) of unsigned(3 downto 0); signal lut : lut_t :=
+  ("0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","0000");
   component ram
       port (
           clk       : in std_logic;
           x         : in unsigned;
           y         : in unsigned;
-          data_out  : out std_logic_vector(7 downto 0)
-          );
+          t_pepe    : in unsigned;
+          data_out  : out std_logic_vector(7 downto 0));
+  end component;
+  component sprite
+      port (
+          clk               : in std_logic;
+          x_coord           : in unsigned;
+          y_coord           : in unsigned;
+          data_out_sprite   : out std_logic_vector(7 downto 0));
+  end component;
+  component KBD_ENC
+    port ( clk		        : in std_logic;				-- system clock
+	   PS2KeyboardClk       : in std_logic;				-- PS2 clock
+	   PS2KeyboardData      : in std_logic;				-- PS2 data
+	   x_right			        : out unsigned(0 downto 0);
+     x_left               : out unsigned(0 downto 0));
   end component;
 begin
 
@@ -96,17 +124,23 @@ begin
           time_clk <= time_clk + 1;
         elsif Ypixel = 480 then
           home_cp <= home;
-          start_y_cp <= start_y;
+          y_tile_cp <= y_tile;
+          start_y_p_cp <= start_y_p;
           Ypixel <= Ypixel + 1;
         else
           Ypixel <= Ypixel + 1;
           if Ypixel < 480 then
-            start_y_cp <= start_y_cp + 1;
-            if start_y_cp = 0 then
-              if home_cp = 71 then
-                home_cp <= "0000000";
+            start_y_p_cp <= start_y_p_cp + 1;
+            if start_y_p_cp = 0 then
+              if y_tile_cp = 5 then
+                y_tile_cp <= "0000000";
+                if home_cp = 11 then
+                  home_cp <= "0000";
+                else
+                  home_cp <= home_cp + 1;
+                end if;
               else
-                home_cp <= home_cp + 1;
+                y_tile_cp <= y_tile_cp + 1;
               end if;
             end if;
           end if;
@@ -115,7 +149,6 @@ begin
     end if;
   end process;
 
-
 -- Home pointer handler
   process(clk)
   begin
@@ -123,14 +156,19 @@ begin
       if time_clk = 1 then
         if game_enable = '0' then
           game_enable <= '1';
-          if start_y = 1 then
-            if home = 0 then
-              home <= "1000111";
+          if start_y_p = 1 then
+            if y_tile = 0 then
+              if home = 0 then
+                home <= "1011";
+              else 
+                home <= home - 1;
+              end if;
+              y_tile <= "0000101";
             else
-              home <= home - 1;
+              y_tile <= y_tile - 1;
             end if;
           end if;
-          start_y <= start_y - 1;
+          start_y_p <= start_y_p - 1;
         end if;
       else
         game_enable <= '0';
@@ -144,15 +182,34 @@ begin
   -- Video blanking signal
   blank <= '1' when ((Xpixel > 639 and Xpixel <= 799) or (Ypixel > 479 and Ypixel <= 520)) else '0';
 
-  y_p <= home_cp;
+  tile_index <= lut(to_integer(home_cp));
+  y_p <= y_tile_cp;
   x_p <= xtile;
+  x_out <= Xpixel - Xpepe;
+  y_out <= Ypixel - Ypepe;
+
+  spritemem : sprite
+  port map (
+    clk => clk,
+    x_coord => x_out,
+    y_coord => y_out,
+    data_out_sprite => sprite_data);
 
   bildmem : ram
   port map (
     clk=> clk,
     x => x_p,
     y => y_p,
+    t_pepe => tile_index,
     data_out => data);
+
+  keyboard : KBD_ENC
+  port map ( 
+     clk => clk,
+	   PS2KeyboardClk=>PS2KeyboardClk,
+	   PS2KeyboardData=>PS2KeyboardData,
+	   x_right=>x_plus,
+     x_left=>x_minus);
 
   -- Tile memory
   process(clk)
@@ -160,7 +217,15 @@ begin
     if rising_edge(clk) then
       if (blank = '0') then
         if (Xpixel > 239) then
-          tilePixel <= data;
+          if (Xpixel >= Xpepe and Xpixel < Xpepe + 32) and (Ypixel >= Ypepe and Ypixel < Ypepe + 32) then
+            if sprite_data = "00000000" then
+              tilePixel <= data;
+            else
+              tilePixel <= sprite_data;
+            end if;
+          else  
+            tilePixel <= data;
+          end if;
         else
           tilePixel <= (others => '0');
         end if;
@@ -170,6 +235,18 @@ begin
     end if;
   end process;
 
+process(clk)
+  begin
+    if rising_edge(clk) then
+      if x_plus = 1 and Xpepe < "1001011111" then
+        Xpepe <= Xpepe + 1;
+      elsif x_minus = 1 and Xpepe > "0011110000" then
+        Xpepe <= Xpepe - 1;
+      end if;
+    end if;
+  end process;
+  
+  
   -- VGA generation
   vgaRed(2)     <= tilePixel(7);
   vgaRed(1)     <= tilePixel(6);

@@ -15,38 +15,30 @@ entity test is
         Hsync             : out std_logic;                        -- horizontal sync
         Vsync             : out std_logic;                        -- vertical sync
         vgaRed            : out	std_logic_vector(2 downto 0);     -- VGA red
-        vgaGreen         : out std_logic_vector(2 downto 0);     -- VGA green
-        vgaBlue           : out std_logic_vector(2 downto 1));    -- VGA blue
+        vgaGreen          : out std_logic_vector(2 downto 0);     -- VGA green
+        vgaBlue           : out std_logic_vector(2 downto 1);    -- VGA blue
+        PS2KeyboardClk	  : in std_logic;                         -- PS2 clock
+	      PS2KeyboardData   : in std_logic);                        -- PS2 data
 end test;
 
 -- architecture
 architecture Behavioral of test is
   component VGA
-    port (clk            : in std_logic;
-          rst            : in std_logic;
-          vgaRed         : out std_logic_vector(2 downto 0);
-          vgaGreen       : out std_logic_vector(2 downto 0);
-          vgaBlue        : out std_logic_vector(2 downto 1);
-          Hsync          : out std_logic;
-          Vsync          : out std_logic);
-  end component;
-  component ram
-    port (clk         : in std_logic;
-          x           : in unsigned(6 downto 0);
-          y           : in unsigned(6 downto 0);
-          data_out    : out std_logic_vector(7 downto 0));
+    port (clk               : in std_logic;
+          rst               : in std_logic;
+          vgaRed            : out std_logic_vector(2 downto 0);
+          vgaGreen          : out std_logic_vector(2 downto 0);
+          vgaBlue           : out std_logic_vector(2 downto 1);
+          Hsync             : out std_logic;
+          Vsync             : out std_logic;
+          PS2KeyboardClk	  : in std_logic; 		-- USB keyboard PS2 clock
+          PS2KeyboardData	  : in std_logic);
   end component;
 
-  -- intermediate signals between PICT_MEM and VGA_MOTOR
-  signal data_out_s     : std_logic_vector(7 downto 0);         -- data
-  signal x_s            : unsigned(6 downto 0);                              -- x address
-  signal y_s            : unsigned(6 downto 0);                              -- y address  
 begin
 
-  -- picture memory component connection
-  U1 : ram port map(clk=>clk, x=>x_s, y=>y_s, data_out=>data_out_s);
 
   -- VGA component connection
-  U2 : VGA port map(clk=>clk, rst=>rst, vgaRed=>vgaRed, vgaGreen=>vgaGreen, vgaBlue=>vgaBlue, Hsync=>Hsync, Vsync=>Vsync);
+  U2 : VGA port map(clk, rst, vgaRed, vgaGreen, vgaBlue, Hsync, Vsync, PS2KeyboardClk, PS2KeyboardData);
 
 end Behavioral;
