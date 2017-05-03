@@ -48,6 +48,8 @@ architecture Behavioral of VGA is
   signal  Ypepe           : unsigned(9 downto 0) := "0111000000";
   signal  x_plus          : unsigned(0 downto 0);
   signal  x_minus         : unsigned(0 downto 0);
+  signal  y_plus          : unsigned(0 downto 0);
+  signal  y_minus         : unsigned(0 downto 0);
 
   type lut_t is array (0 to 11) of unsigned(3 downto 0); signal lut : lut_t :=
   ("0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","0000");
@@ -71,7 +73,10 @@ architecture Behavioral of VGA is
 	   PS2KeyboardClk       : in std_logic;				-- PS2 clock
 	   PS2KeyboardData      : in std_logic;				-- PS2 data
 	   x_right			        : out unsigned(0 downto 0);
-     x_left               : out unsigned(0 downto 0));
+     x_left               : out unsigned(0 downto 0);
+     x_up                 : out unsigned(0 downto 0);
+     x_down               : out unsigned(0 downto 0)
+     );
   end component;
 begin
 
@@ -209,7 +214,9 @@ begin
 	   PS2KeyboardClk=>PS2KeyboardClk,
 	   PS2KeyboardData=>PS2KeyboardData,
 	   x_right=>x_plus,
-     x_left=>x_minus);
+     x_left=>x_minus,
+     x_up=>y_plus,
+     x_down=>y_minus);
 
   -- Tile memory
   process(clk)
@@ -242,6 +249,10 @@ process(clk)
         Xpepe <= Xpepe + 1;
       elsif x_minus = 1 and Xpepe > "0011110000" then
         Xpepe <= Xpepe - 1;
+      elsif y_plus = 1 and Ypepe <  "0111000000" then
+        Ypepe <= Ypepe + 1;
+      elsif y_minus = 1 and Ypepe > "0000000000" then
+        Ypepe <= Ypepe + 1;
       end if;
     end if;
   end process;
