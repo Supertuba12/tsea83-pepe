@@ -3,13 +3,12 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 --CPU interface
-entity proj is
+entity CPU is
   port(clk: in std_logic;
 	     rst: in std_logic);
-end proj ;
+end CPU ;
 
-architecture Behavioral of proj is
-
+architecture Behavioral of CPU is
 
   -- micro Memory component
   component em
@@ -52,7 +51,6 @@ architecture Behavioral of proj is
   signal O : std_logic; -- O = 1 if operation in ALU caused overflow
 
 begin
-
   -- mPC : micro Program Counter
   process(clk)
   begin
