@@ -4,12 +4,9 @@ import sys
 import openpyxl
 from openpyxl import load_workbook
 
-for xlsx_file in sys.argv[1:]:
-    wb = load_workbook(filename=xlsx_file)
-    ws = wb.active
-
-    fd = open("tiles.txt", "w+")
-    print("Opening {0}...".format(xlsx_file))
+xlsx_file = sys.argv[1]
+with open("blocks", "w+") as fd:
+    ws = load_workbook(filename=xlsx_file).active
     i = 0
     cell_range = ws['A1':'AX72']
     for col in cell_range:
@@ -26,11 +23,8 @@ for xlsx_file in sys.argv[1:]:
 
             binary_val = format(red_8, '03b') + format(green_8, '03b') + format(blue_8, '02b')
             output = format(int(binary_val, 2), "02x")
-            print(color, " - ", output)
 
             fd.write("x\"" + output + "\", ")
             if i % 300 == 0:
                 fd.write("\n")
         fd.write("\n")
-    fd.close()
-    print("File {0} closed.".format(xlsx_file))
