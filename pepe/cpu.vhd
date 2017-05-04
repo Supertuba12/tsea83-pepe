@@ -45,15 +45,34 @@ architecture Behavioral of CPU is
   -- Registers
   signal AR       : unsigned(15 downto 0); -- AR register for ALU
 	signal HELP_REG : unsigned(15 downto 0); -- Help register
+  signal GR       : unsigned(15 downto 0);
   signal GR0      : unsigned(15 downto 0); -- General-use register 
   signal GR1      : unsigned(15 downto 0); -- General-use register
-  signal GRX      : unsigned(15 downto 0); -- Bus signal for chosen G-register
+  signal GR2      : unsigned(15 downto 0);
+  signal GR3      : unsigned(15 downto 0) := to_unsigned(0, 16);   -- millisecond clock
+  -- IR parts
+  signal OP       : unsigned(3 downto 0);
+  signal GRX      : unsigned(1 downto 0);
+  signal M        : std_logic;
+  signal ADR      : unsigned(8 downto 0);
   -- Flags
   signal Z        : std_logic; -- Z = 1 if value @ AR == 0 else N = 0
   signal N        : std_logic; -- N = 1 if value @ AR < 0 else N = 0
   signal O        : std_logic; -- O = 1 if operation in ALU caused overflow
+  signal counter  : unsigned(16 downto 0);
 
 begin
+  process(clk)
+  begin
+    if rising_edge(clk) then
+      counter <= counter + 1;
+      if counter = 100000 then
+        GR3 <= GR3 + 1;
+        counter <= to_unsigned(0, 17);
+      end if;
+    end if;
+  end process;
+
   -- mPC : micro Program Counter
   process(clk)
   begin
@@ -158,7 +177,7 @@ begin
   end process;  
 
   -- General registers 
-	process(clk)
+  process(clk)
   begin
     if rising_edge(clk) then
       if (rst = '1') then
@@ -168,7 +187,7 @@ begin
   end process;
 
   -- K1 memory
-  with IR(15 downto 12) select K1 <=
+  with OP select K1 <=
     to_unsigned(5, 6)   when "0000", -- Micro adress to LOAD
     to_unsigned(6, 6)   when "0001", -- Micro adress to STORE
     to_unsigned(7, 6)   when "0010", -- Micro adress to ADD
@@ -178,12 +197,11 @@ begin
     to_unsigned(21, 6)  when "0110", -- Micro adress to JMP
     to_unsigned(22, 6)  when "0111", -- Micro adress to CMP
     to_unsigned(25, 6)  when "1000"; -- Micro adress to HALT
-        
-  -- K2 assignment
-  with IR(9 downto 9) select K2 <=
-    to_unsigned(3, 6)   when "0", -- Direct mode
-    to_unsigned(4, 6)   when "1"; -- Immediate mode
 
+  -- K2 assignment
+  with M select K2 <=
+    to_unsigned(3, 6)   when '0', -- Direct mode
+    to_unsigned(4, 6)   when '1'; -- Immediate mode
 
   -- micro memory component connection
   U0 : uMem port map(uAddr=>uPC, uData=>uM);
@@ -199,14 +217,25 @@ begin
    TB     <= uM(16 downto 14);
    ALU    <= uM(19 downto 17);
 
+   OP     <= IR(15 downto 12);
+   GRX    <= IR(11 downto 10);
+   M      <= IR(9);
+   ADR    <= IR(8 downto 0);
+
   -- data bus assignment
   DATA_BUS <= 
     IR        when (TB = "001") else
     PM        when (TB = "010") else
     PC        when (TB = "011") else
     AR        when (TB = "100") else
-    HELP_REG  when (TB = "101") else
-    GRX       when (TB = "110") else
+    GR        when (TB = "110") else
     (others => '0');
+  
+  with GRX select GR <=
+    GR0       when "00",
+    GR1       when "01",
+    GR2       when "10",
+    GR3       when "11";
+
 
 end Behavioral;

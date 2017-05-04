@@ -1,36 +1,7 @@
-; SUBROUTINE        OP      (ARG0),(ARG1)   ; COMMENT
-; 0 ARGUMENT EXAMPLE:
-;           HALT
-; 1 ARGUMENT EXAMPLE:
-;           JMP     MAIN
-; 2 ARGUMENT EXAMPLE:
-;           LOAD    GR0,#40
-; INFINITE LOOP
-; TEST      JMP     TEST
+MAIN        
 
-; FIBONACCI 1,1,2,3,5,8,13,21,34...
-        LOAD    GR0,#5      ; Fib number searched for
-        LOAD    GR1,#1      ; Current POS
-        STORE   GR0,$A      ; Store end position
-        STORE   GR1,$B      ; Store CURR POS
-        LOAD    GR0,#1      ; Fibonacci number 1 (1)
-        STORE   GR0,$C      ; Store F1
-        LOAD    GR1,#1      ; Fibonacci number 2 (1)
-        STORE   GR1,$D      ; Store F2
-MAIN    LOAD    GR0,$A      ; GR0 := END POS
-        CMP     GR0,$B      ; Compare if done
-        BGE     FIB
-        HALT                ; Fib number searched for in $D
+KBD         
 
-
-FIB     LOAD    GR0,$C      ; GR0 := FIB1
-        ADD     GR0,$D      ; GR0 := GR0 + $D
-        LOAD    GR1,$D      ; GR1 := $D
-        STORE   GR1,$C      ; $C := $D
-        STORE   GR0,$D      ; $D := GR0
-        LOAD    GR0,$B      ; GR0 := CURR POS
-        ADD     GR0,#1      ; GR0++
-        STORE   GR0,$B      ; $B := GR0
-        JMP     MAIN
-
-
+RND         FETCH   GR0
+            STORE   GR0,$ff
+            JMP LOOP
