@@ -33,9 +33,9 @@ XILINX_INIT = source /sw/xilinx/ise_12.4i/ISE_DS/settings64.sh;
 PART=xc6slx16-3-csg324
 
 
-proj.%: S=cpu.vhd uMem.vhd pMem.vhd test.vhd vga.vhd ram.vhd sprite.vhd KBD_ENC.vhd
-proj.%: T=pepe.vhd
-proj.%: U=Nexys3_Master.ucf
+pepe.%: S=cpu.vhd uMem.vhd pMem.vhd test.vhd vga.vhd ram.vhd sprite.vhd KBD_ENC.vhd
+pepe.%: T=pepe.vhd
+pepe.%: U=Nexys3_Master.ucf
 
 
 # Det här är ett exempel på hur man kan skriva en testbänk som är
@@ -63,6 +63,4 @@ include build/digilentprog.mk
 #include design_compiler.mk
 # The following is for synthesis to a Xilinx target using Precision.
 #include precision-xilinx.mk
-
-
 

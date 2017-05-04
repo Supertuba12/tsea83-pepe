@@ -21,17 +21,13 @@ architecture behavioral of KBD_ENC is
   signal PS2Data		            : std_logic;			-- Synchronized PS2 data
   signal PS2Clk_Q1, PS2Clk_Q2 	: std_logic;			-- PS2 clock one pulse flip flop
   signal PS2Clk_op 		          : std_logic;			-- PS2 clock one pulse 
-	
   signal PS2Data_sr 		        : std_logic_vector(10 downto 0);-- PS2 data shift register
-	
   signal PS2BitCounter	        : unsigned(3 downto 0);		-- PS2 bit counter
-
   type state_type is (IDLE, MAKE, BREAK);			-- declare state types for PS2
   signal PS2state : state_type;					-- PS2 state
-
   signal ScanCode		            : std_logic_vector(7 downto 0);	-- scan code
   signal ScanCode_pre		        : std_logic_vector(7 downto 0);	-- scan code
-
+  signal buttons                : unsigned(3 downto 0);
   signal state                  : std_logic;                 -- MAKE or BREAK
 begin
 
@@ -138,7 +134,7 @@ begin
 
   -- Scan Code -> Tile Index mapping
     with ScanCode select
-        movement <=     "001" when x"1C",	-- A
+        buttons <=      "001" when x"1C",	-- A
                         "010" when x"23",	-- D
                         "011" when x"1B",	-- S
                         "100" when x"1D",	-- W

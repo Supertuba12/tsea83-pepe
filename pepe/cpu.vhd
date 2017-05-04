@@ -66,18 +66,18 @@ begin
         when "0010" =>
           uPC <= K2;
         when "0011" =>
-          uPC <= 0;
+          uPC <= to_unsigned(0, 8);
         when "1000" =>
           if (Z = '1') then -- If flagged value zero -> jump to given adress
-            uPC = uAddr;
+            uPC <= uAddr;
           end if;
         when "1001" =>
           if (N = '1') then -- If flagged negative value -> jump to given adress
-            uPC = uAddr;
+            uPC <= uAddr;
           end if;
         when "1011" =>
-          if (O = '1')  -- If flagged overflow -> jump to given adress
-            uPC = uAddr;
+          if (O = '1') then  -- If flagged overflow -> jump to given adress
+            uPC <= uAddr;
           end if;
         when "1111" =>
           -- SHUT THE MACHINE DOWN!!!
@@ -133,17 +133,17 @@ begin
         -- Maybe reset AR?
         AR <= (others => '0');
       end if;
-      case SEQ is
+      case ALU is
         when "001" => -- AR := BUSS
           AR <= DATA_BUS;
         when "010" => -- Undef. Could be set to what we want
 
         when "011" => -- AR := 0
-          AR <= 0;
+          AR <= to_unsigned(0, 16);
         when "100" => -- AR := AR + BUSS
           AR <= AR + DATA_BUS;
         when "101" => -- AR := AR - BUSS
-          AR <= AR - DATA_BUS
+          AR <= AR - DATA_BUS;
         when "110" => -- AR := AR && BUSS
           AR <= AR and DATA_BUS;
         when "111" => -- AR := AR || BUSS
@@ -166,20 +166,20 @@ begin
 
   -- K1 memory
   with IR(15 downto 12) select K1 <=
-    to_unsigned(x"05") when "0000", -- Micro adress to LOAD
-    to_unsigned(x"06") when "0001", -- Micro adress to STORE
-    to_unsigned(x"07") when "0010", -- Micro adress to ADD
-    to_unsigned(x"0A") when "0011", -- Micro adress to SUB
-    to_unsigned(x"0D") when "0100", -- Micro adress to AND
-    to_unsigned(x"10") when "0101", -- Micro adress to BGE
-    to_unsigned(x"15") when "0110", -- Micro adress to JMP
-    to_unsigned(x"16") when "0111", -- Micro adress to CMP
-    to_unsigned(x"19") when "1000"; -- Micro adress to HALT
+    x"05" when "0000", -- Micro adress to LOAD
+    x"06" when "0001", -- Micro adress to STORE
+    x"07" when "0010", -- Micro adress to ADD
+    x"0A" when "0011", -- Micro adress to SUB
+    x"0D" when "0100", -- Micro adress to AND
+    x"10" when "0101", -- Micro adress to BGE
+    x"15" when "0110", -- Micro adress to JMP
+    x"16" when "0111", -- Micro adress to CMP
+    x"19" when "1000"; -- Micro adress to HALT
         
   -- K2 assignment
-  with IR(9 downto 8) select K2 <=
-    to_unsigned(x"03") when "0", -- Direct mode
-    to_unsigned(x"04") when "1"; -- Immediate mode
+  with IR(9 downto 9) select K2 <=
+    x"03" when "0", -- Direct mode
+    x"04" when "1"; -- Immediate mode
 
 
   -- micro memory component connection
@@ -197,18 +197,18 @@ begin
   -- ALU <= uM(21 downto 19)
 
   -- Alias declaration for micro memory signal uM
-  alias uAddr : unsigned(7 downto 0) is uM(7 downto 0);
-  alias SEQ : unsigned(3 downto 0) is uM(11 downto 8);
-  alias PCsig : std_logic is uM(12);
-  alias FB : unsigned(2 downto 0) is uM(15 downto 13);
-  alias TB : unsigned(2 downto 0) is uM(18 downto 16);
-  alias ALU : unsigned(2 downto 0) is uM(21 downto 19)
+  --alias uAddr : unsigned(7 downto 0) is uM(7 downto 0);
+  --alias SEQ : unsigned(3 downto 0) is uM(11 downto 8);
+  --alias PCsig : std_logic is uM(12);
+  --alias FB : unsigned(2 downto 0) is uM(15 downto 13);
+  --alias TB : unsigned(2 downto 0) is uM(18 downto 16);
+  --alias ALU : unsigned(2 downto 0) is uM(21 downto 19)
 	
   -- Alias declaration for instruction register sequences
-  alias OP : unsigned(3 downto 0) is IR(15 downto 12);
-  alias GR : std_logic is IR(11);
-  alias addrM : std_logic is IR(10);
-  alias PMaddr : unsigned(9 downto 0) is IR(9 downto 0);
+  --alias OP : unsigned(3 downto 0) is IR(15 downto 12);
+  --alias GR : std_logic is IR(11);
+  --alias addrM : std_logic is IR(10);
+  --alias PMaddr : unsigned(9 downto 0) is IR(9 downto 0);
 
   -- data bus assignment
   DATA_BUS <= 
@@ -217,7 +217,7 @@ begin
     PC when (TB = "011") else
     AR when (TB = "100") else
     HELP_REG when (TB = "101") else
-    GRX when (TB = "110")
+    GRX when (TB = "110") else
     (others => '0');
 
 end Behavioral;
