@@ -4,55 +4,54 @@ use IEEE.NUMERIC_STD.ALL;
 
 --CPU interface
 entity CPU is
-  port(clk: in std_logic;
-	     rst: in std_logic;
-	     movement_in : in unsigned(2 downto 0);
-       rng_ut : out unsigned(3 downto 0);
-       move_pepe : out unsigned(2 downto 0)
-	     );
+  port(clk          : in std_logic;
+	     rst          : in std_logic;
+	     movement_in  : in unsigned(2 downto 0);
+       rng_ut       : out unsigned(3 downto 0);
+       move_pepe    : out unsigned(2 downto 0));
 end CPU ;
 
 architecture Behavioral of CPU is
 
   -- micro Memory component
   component uMem
-    port(uAddr : in unsigned(5 downto 0);
-         uData : out unsigned(19 downto 0));
+    port(uAddr    : in unsigned(5 downto 0);
+         uData    : out unsigned(19 downto 0));
   end component;
 
   -- program Memory component
   component pMem
-    port(pAddr : in unsigned(15 downto 0);
-         pData : out unsigned(15 downto 0));
+    port(pAddr    : in unsigned(15 downto 0);
+         pData    : out unsigned(15 downto 0));
   end component;
   
   -- micro memory signals
-  signal uM : unsigned(19 downto 0); -- micro Memory output
-  signal uPC : unsigned(5 downto 0); -- micro Program Counter
-  signal SEQ : unsigned(3 downto 0); -- uPC controller ###NOT USED###
-  signal uAddr : unsigned(5 downto 0); -- micro Address ###NOT USED###
-  signal TB : unsigned(2 downto 0); -- To Bus field ###NOT USED###
-  signal FB : unsigned(2 downto 0); -- From Bus field ###NOT USED###
-	signal ALU : unsigned(2 downto 0); -- ALU operand ###NOT USED###
-  signal K1 : unsigned (5 downto 0); -- K1 signal
-  signal K2 : unsigned (5 downto 0); -- K2 signal
+  signal uM       : unsigned(19 downto 0); -- micro Memory output
+  signal uPC      : unsigned(5 downto 0); -- micro Program Counter
+  signal SEQ      : unsigned(3 downto 0); -- uPC controller ###NOT USED###
+  signal uAddr    : unsigned(5 downto 0); -- micro Address ###NOT USED###
+  signal TB       : unsigned(2 downto 0); -- To Bus field ###NOT USED###
+  signal FB       : unsigned(2 downto 0); -- From Bus field ###NOT USED###
+	signal ALU      : unsigned(2 downto 0); -- ALU operand ###NOT USED###
+  signal K1       : unsigned (5 downto 0); -- K1 signal
+  signal K2       : unsigned (5 downto 0); -- K2 signal
   -- program memory signals
-  signal PM : unsigned(15 downto 0); -- Program Memory output
-  signal PC : unsigned(15 downto 0); -- Program Counter
-  signal PCsig : std_logic; -- 0:PC=PC, 1:PC++ ###NOT USED###
-  signal ASR : unsigned(15 downto 0); -- Address Register
-  signal IR : unsigned(15 downto 0); -- Instruction Register
+  signal PM       : unsigned(15 downto 0); -- Program Memory output
+  signal PC       : unsigned(15 downto 0); -- Program Counter
+  signal PCsig    : std_logic; -- 0:PC=PC, 1:PC++ ###NOT USED###
+  signal ASR      : unsigned(15 downto 0); -- Address Register
+  signal IR       : unsigned(15 downto 0); -- Instruction Register
   signal DATA_BUS : unsigned(15 downto 0); -- Data Bus
   -- Registers
-  signal AR : unsigned(15 downto 0); -- AR register for ALU
+  signal AR       : unsigned(15 downto 0); -- AR register for ALU
 	signal HELP_REG : unsigned(15 downto 0); -- Help register
-  signal GR0 : unsigned(15 downto 0); -- General-use register 
-  signal GR1 : unsigned(15 downto 0); -- General-use register
-  signal GRX : unsigned(15 downto 0); -- Bus signal for chosen G-register
+  signal GR0      : unsigned(15 downto 0); -- General-use register 
+  signal GR1      : unsigned(15 downto 0); -- General-use register
+  signal GRX      : unsigned(15 downto 0); -- Bus signal for chosen G-register
   -- Flags
-  signal Z : std_logic; -- Z = 1 if value @ AR == 0 else N = 0
-  signal N : std_logic; -- N = 1 if value @ AR < 0 else N = 0
-  signal O : std_logic; -- O = 1 if operation in ALU caused overflow
+  signal Z        : std_logic; -- Z = 1 if value @ AR == 0 else N = 0
+  signal N        : std_logic; -- N = 1 if value @ AR < 0 else N = 0
+  signal O        : std_logic; -- O = 1 if operation in ALU caused overflow
 
 begin
   -- mPC : micro Program Counter
@@ -170,20 +169,20 @@ begin
 
   -- K1 memory
   with IR(15 downto 12) select K1 <=
-    to_unsigned(5, 6) when "0000", -- Micro adress to LOAD
-    to_unsigned(6, 6) when "0001", -- Micro adress to STORE
-    to_unsigned(7, 6) when "0010", -- Micro adress to ADD
-    to_unsigned(10, 6) when "0011", -- Micro adress to SUB
-    to_unsigned(13, 6) when "0100", -- Micro adress to AND
-    to_unsigned(16, 6) when "0101", -- Micro adress to BGE
-    to_unsigned(21, 6) when "0110", -- Micro adress to JMP
-    to_unsigned(22, 6) when "0111", -- Micro adress to CMP
-    to_unsigned(25, 6) when "1000"; -- Micro adress to HALT
+    to_unsigned(5, 6)   when "0000", -- Micro adress to LOAD
+    to_unsigned(6, 6)   when "0001", -- Micro adress to STORE
+    to_unsigned(7, 6)   when "0010", -- Micro adress to ADD
+    to_unsigned(10, 6)  when "0011", -- Micro adress to SUB
+    to_unsigned(13, 6)  when "0100", -- Micro adress to AND
+    to_unsigned(16, 6)  when "0101", -- Micro adress to BGE
+    to_unsigned(21, 6)  when "0110", -- Micro adress to JMP
+    to_unsigned(22, 6)  when "0111", -- Micro adress to CMP
+    to_unsigned(25, 6)  when "1000"; -- Micro adress to HALT
         
   -- K2 assignment
   with IR(9 downto 9) select K2 <=
-    to_unsigned(3, 6) when "0", -- Direct mode
-    to_unsigned(4, 6) when "1"; -- Immediate mode
+    to_unsigned(3, 6)   when "0", -- Direct mode
+    to_unsigned(4, 6)   when "1"; -- Immediate mode
 
 
   -- micro memory component connection
@@ -193,35 +192,21 @@ begin
   U1 : pMem port map(pAddr=>ASR, pData=>PM);
 	
    -- micro memory signal assignments
-   uAddr <= uM(5 downto 0);
-   SEQ <= uM(9 downto 6);
-   PCsig <= uM(10);
-   FB <= uM(13 downto 11);
-   TB <= uM(16 downto 14);
-   ALU <= uM(19 downto 17);
-
-  -- Alias declaration for micro memory signal uM
-  --alias uAddr : unsigned(7 downto 0) is uM(7 downto 0);
-  --alias SEQ : unsigned(3 downto 0) is uM(11 downto 8);
-  --alias PCsig : std_logic is uM(12);
-  --alias FB : unsigned(2 downto 0) is uM(15 downto 13);
-  --alias TB : unsigned(2 downto 0) is uM(18 downto 16);
-  --alias ALU : unsigned(2 downto 0) is uM(21 downto 19)
-	
-  -- Alias declaration for instruction register sequences
-  --alias OP : unsigned(3 downto 0) is IR(15 downto 12);
-  --alias GR : std_logic is IR(11);
-  --alias addrM : std_logic is IR(10);
-  --alias PMaddr : unsigned(9 downto 0) is IR(9 downto 0);
+   uAddr  <= uM(5 downto 0);
+   SEQ    <= uM(9 downto 6);
+   PCsig  <= uM(10);
+   FB     <= uM(13 downto 11);
+   TB     <= uM(16 downto 14);
+   ALU    <= uM(19 downto 17);
 
   -- data bus assignment
   DATA_BUS <= 
-    IR when (TB = "001") else
-    PM when (TB = "010") else
-    PC when (TB = "011") else
-    AR when (TB = "100") else
-    HELP_REG when (TB = "101") else
-    GRX when (TB = "110") else
+    IR        when (TB = "001") else
+    PM        when (TB = "010") else
+    PC        when (TB = "011") else
+    AR        when (TB = "100") else
+    HELP_REG  when (TB = "101") else
+    GRX       when (TB = "110") else
     (others => '0');
 
 end Behavioral;

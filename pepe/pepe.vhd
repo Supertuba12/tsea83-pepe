@@ -27,32 +27,26 @@ architecture Behavioral of pepe is
           Hsync             : out std_logic;
           Vsync             : out std_logic;
           rng_in            : in unsigned(3 downto 0);
-          move_pepe_in      : in unsigned(2 downto 0)
-          );
+          move_pepe_in      : in unsigned(2 downto 0));
   end component;
 
   component CPU
-    port(clk : in std_logic;
-         rst : in std_logic;
-         movement_in : in unsigned(2 downto 0);
-         rng_ut : out unsigned(3 downto 0);
-         move_pepe : out unsigned(2 downto 0)
-         );
+    port(clk          : in std_logic;
+         rst          : in std_logic;
+         movement_in  : in unsigned(2 downto 0);
+         rng_ut       : out unsigned(3 downto 0);
+         move_pepe    : out unsigned(2 downto 0));
   end component;
   
   component KBD_ENC 
-    port(   clk	            : in std_logic;
-            PS2KeyboardClk	: in std_logic;
-            PS2KeyboardData	: in std_logic;
-            movement			  : out unsigned(2 downto 0)
-        );
+    port(clk	            : in std_logic;
+         PS2KeyboardClk   : in std_logic;
+         PS2KeyboardData  : in std_logic;
+         movement         : out unsigned(2 downto 0));
   end component;
 begin
-  -- VGA component connection
   U2 : VGA port map(clk, rst, vgaRed, vgaGreen, vgaBlue, Hsync, Vsync, rng_in => rng_bus, move_pepe_in => move_pepe_bus);
   U3 : KBD_ENC port map(clk, PS2KeyboardClk, PS2KeyboardData, movement => movement_bus);
-  -- Instantiate the Unit Under Test (UUT)
   U4: CPU port map(clk, rst, movement_in => movement_bus, rng_ut => rng_bus, move_pepe => move_pepe_bus);
-
 
 end Behavioral;

@@ -3,8 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity ram is
-port (
-        clk         : in std_logic;
+  port (clk         : in std_logic;
         x           : in unsigned(6 downto 0);
         y           : in unsigned(6 downto 0);
         t_pepe      : in unsigned(3 downto 0);
@@ -12,11 +11,11 @@ port (
 end ram;
 
 architecture Behavioral of ram is
-    signal index   : unsigned(13 downto 0);
+  signal index : unsigned(13 downto 0);
 
-    type ram_t is array (0 to 3599) of std_logic_vector(7 downto 0);
-    signal ram : ram_t :=(
-        x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", 
+  type ram_t is array (0 to 3599) of std_logic_vector(7 downto 0);
+  signal ram : ram_t :=(
+x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", 
 x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"00", x"00", x"00", x"00", x"00", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", 
 x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"00", x"00", x"00", x"00", x"00", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", 
 x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"00", x"00", x"00", x"00", x"00", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", x"e0", 
@@ -99,18 +98,14 @@ x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"6
 x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"00", x"00", x"00", x"00", x"00", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", 
 x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"00", x"00", x"00", x"00", x"00", x"64", x"64", x"64", x"64", x"64", x"64", x"64", x"64", 
 x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00"
-
-    );
+  );
 begin
-index <= (to_integer(t_pepe)*300 + y*50 + x);
-process(clk)
-begin
+  index <= (to_integer(t_pepe)*300 + y*50 + x);
+  process(clk)
+  begin
     if rising_edge(clk) then
-        data_out <= ram(to_integer(index));
+      data_out <= ram(to_integer(index));
     end if;
-end process;    
-
-
+  end process;    
 
 end Behavioral;
-

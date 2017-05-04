@@ -50,23 +50,23 @@ architecture Behavioral of VGA is
 
   type lut_t is array (0 to 11) of unsigned(3 downto 0); signal lut : lut_t :=
   ("0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","0000");
+
   component ram
-      port (
-          clk       : in std_logic;
+    port (clk       : in std_logic;
           x         : in unsigned;
           y         : in unsigned;
           t_pepe    : in unsigned;
           data_out  : out std_logic_vector(7 downto 0));
   end component;
+
   component sprite
-      port (
-          clk               : in std_logic;
+    port (clk               : in std_logic;
           x_coord           : in unsigned;
           y_coord           : in unsigned;
           data_out_sprite   : out std_logic_vector(7 downto 0));
   end component;
-begin
 
+begin
   -- Clock divisor
   -- Divide system clock (100 MHz) by 4
   process(clk)
@@ -101,10 +101,8 @@ begin
   end if;
   end process;
 
-
   -- Horizontal sync
   Hsync <= '0' when ((Xpixel > 655) and (Xpixel <= 751)) else '1'; 
-
 
   -- Ypixel incrementation at 60Hz
   process(clk)
@@ -233,8 +231,7 @@ process(clk)
       end if;
     end if;
   end process;
-  
-  
+
   -- VGA generation
   vgaRed(2)     <= tilePixel(7);
   vgaRed(1)     <= tilePixel(6);

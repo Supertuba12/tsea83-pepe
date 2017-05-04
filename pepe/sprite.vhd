@@ -3,17 +3,17 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity sprite is
-port (
-        clk               : in std_logic;
+  port (clk               : in std_logic;
         x_coord           : in unsigned(9 downto 0);
         y_coord           : in unsigned(9 downto 0);
         data_out_sprite   : out std_logic_vector(7 downto 0));
 end sprite;
 
 architecture Behavioral of sprite is
-    signal index    : unsigned(19 downto 0);
-    type ram_t is array (0 to 1023) of std_logic_vector(7 downto 0);
-    signal spriteMem : ram_t :=(
+  signal index : unsigned(19 downto 0);
+  type ram_t is array (0 to 1023) of std_logic_vector(7 downto 0);
+
+  signal spriteMem : ram_t :=(
 x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", 
 x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", 
 x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"ba", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", 
@@ -49,16 +49,15 @@ x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"16", x"16", x"16", x"16", x"1
 x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", 
 x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"16", x"16", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", 
 x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"16", x"16", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00"
-
-    );
+);
 
 begin
-index <= ((y_coord)*32) + (x_coord);
-process(clk)
-begin
+  index <= ((y_coord)*32) + (x_coord);
+  process(clk)
+  begin
     if rising_edge(clk) then
-        data_out_sprite <= spriteMem(to_integer(index));
+      data_out_sprite <= spriteMem(to_integer(index));
     end if;
-end process;
+  end process;
 
 end Behavioral;
