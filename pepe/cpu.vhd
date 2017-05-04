@@ -5,15 +5,19 @@ use IEEE.NUMERIC_STD.ALL;
 --CPU interface
 entity CPU is
   port(clk: in std_logic;
-	     rst: in std_logic);
+	     rst: in std_logic;
+	     movement_in : in unsigned(2 downto 0);
+       rng_ut : out unsigned(3 downto 0);
+       move_pepe : out unsigned(2 downto 0)
+	     );
 end CPU ;
 
 architecture Behavioral of CPU is
 
   -- micro Memory component
-  component em
-    port(uAddr : in unsigned(7 downto 0);
-         uData : out unsigned(21 downto 0));
+  component uMem
+    port(uAddr : in unsigned(5 downto 0);
+         uData : out unsigned(19 downto 0));
   end component;
 
   -- program Memory component
@@ -23,15 +27,15 @@ architecture Behavioral of CPU is
   end component;
   
   -- micro memory signals
-  signal uM : unsigned(21 downto 0); -- micro Memory output
-  signal uPC : unsigned(7 downto 0); -- micro Program Counter
+  signal uM : unsigned(19 downto 0); -- micro Memory output
+  signal uPC : unsigned(5 downto 0); -- micro Program Counter
   signal SEQ : unsigned(3 downto 0); -- uPC controller ###NOT USED###
-  signal uAddr : unsigned(7 downto 0); -- micro Address ###NOT USED###
+  signal uAddr : unsigned(5 downto 0); -- micro Address ###NOT USED###
   signal TB : unsigned(2 downto 0); -- To Bus field ###NOT USED###
   signal FB : unsigned(2 downto 0); -- From Bus field ###NOT USED###
 	signal ALU : unsigned(2 downto 0); -- ALU operand ###NOT USED###
-  signal K1 : unsigned (7 downto 0); -- K1 signal
-  signal K2 : unsigned (7 downto 0); -- K2 signal
+  signal K1 : unsigned (5 downto 0); -- K1 signal
+  signal K2 : unsigned (5 downto 0); -- K2 signal
   -- program memory signals
   signal PM : unsigned(15 downto 0); -- Program Memory output
   signal PC : unsigned(15 downto 0); -- Program Counter
@@ -66,7 +70,7 @@ begin
         when "0010" =>
           uPC <= K2;
         when "0011" =>
-          uPC <= to_unsigned(0, 8);
+          uPC <= to_unsigned(0, 6);
         when "1000" =>
           if (Z = '1') then -- If flagged value zero -> jump to given adress
             uPC <= uAddr;
@@ -166,35 +170,35 @@ begin
 
   -- K1 memory
   with IR(15 downto 12) select K1 <=
-    x"05" when "0000", -- Micro adress to LOAD
-    x"06" when "0001", -- Micro adress to STORE
-    x"07" when "0010", -- Micro adress to ADD
-    x"0A" when "0011", -- Micro adress to SUB
-    x"0D" when "0100", -- Micro adress to AND
-    x"10" when "0101", -- Micro adress to BGE
-    x"15" when "0110", -- Micro adress to JMP
-    x"16" when "0111", -- Micro adress to CMP
-    x"19" when "1000"; -- Micro adress to HALT
+    to_unsigned(5, 6) when "0000", -- Micro adress to LOAD
+    to_unsigned(6, 6) when "0001", -- Micro adress to STORE
+    to_unsigned(7, 6) when "0010", -- Micro adress to ADD
+    to_unsigned(10, 6) when "0011", -- Micro adress to SUB
+    to_unsigned(13, 6) when "0100", -- Micro adress to AND
+    to_unsigned(16, 6) when "0101", -- Micro adress to BGE
+    to_unsigned(21, 6) when "0110", -- Micro adress to JMP
+    to_unsigned(22, 6) when "0111", -- Micro adress to CMP
+    to_unsigned(25, 6) when "1000"; -- Micro adress to HALT
         
   -- K2 assignment
   with IR(9 downto 9) select K2 <=
-    x"03" when "0", -- Direct mode
-    x"04" when "1"; -- Immediate mode
+    to_unsigned(3, 6) when "0", -- Direct mode
+    to_unsigned(4, 6) when "1"; -- Immediate mode
 
 
   -- micro memory component connection
-  U0 : em port map(uAddr=>uPC, uData=>uM);
+  U0 : uMem port map(uAddr=>uPC, uData=>uM);
 
   -- program memory component connection
   U1 : pMem port map(pAddr=>ASR, pData=>PM);
 	
-  -- micro memory signal assignments
-  -- uAddr <= uM(7 downto 0);
-  -- SEQ <= uM(11 downto 8);
-  -- PCsig <= uM(12);
-  -- FB <= uM(15 downto 13);
-  -- TB <= uM(18 downto 16);
-  -- ALU <= uM(21 downto 19)
+   -- micro memory signal assignments
+   uAddr <= uM(5 downto 0);
+   SEQ <= uM(9 downto 6);
+   PCsig <= uM(10);
+   FB <= uM(13 downto 11);
+   TB <= uM(16 downto 14);
+   ALU <= uM(19 downto 17);
 
   -- Alias declaration for micro memory signal uM
   --alias uAddr : unsigned(7 downto 0) is uM(7 downto 0);

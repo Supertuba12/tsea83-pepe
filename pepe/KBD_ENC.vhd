@@ -8,10 +8,7 @@ entity KBD_ENC is
   port (    clk	            : in std_logic;			-- system clock (100 MHz)
             PS2KeyboardClk	: in std_logic; 		-- USB keyboard PS2 clock
             PS2KeyboardData	: in std_logic;			-- USB keyboard PS2 data
-            x_right			    : out unsigned(0 downto 0);		-- tile data
-            x_left          : out unsigned(0 downto 0);
-            x_up            : out unsigned(0 downto 0);
-            x_down          : out unsigned(0 downto 0)
+            movement			    : out unsigned(2 downto 0)
         );
 end KBD_ENC;
 
@@ -27,7 +24,6 @@ architecture behavioral of KBD_ENC is
   signal PS2state : state_type;					-- PS2 state
   signal ScanCode		            : std_logic_vector(7 downto 0);	-- scan code
   signal ScanCode_pre		        : std_logic_vector(7 downto 0);	-- scan code
-  signal buttons                : unsigned(3 downto 0);
   signal state                  : std_logic;                 -- MAKE or BREAK
 begin
 
@@ -130,33 +126,22 @@ begin
         end if;
     end process;
 	
-	
 
-  -- Scan Code -> Tile Index mapping
-    with ScanCode select
-        buttons <=      "001" when x"1C",	-- A
-                        "010" when x"23",	-- D
-                        "011" when x"1B",	-- S
-                        "100" when x"1D",	-- W
-                        "000" when others;
   process(clk)
     begin
         if rising_edge(clk) then
           if ScanCode = not(ScanCode_pre) then
-            case buttons is
+            case ScanCode is
               when x"1C" =>
-                x_left <= "1";
+                movement <= "001";
               when x"23" =>
-                x_right <= "1";
+                movement <= "010";
               when x"1B" =>
-                x_down <= "1";
+                movement <= "011";
               when x"1D" =>
-                x_up <= "1";
+                movement <= "100";
               when others =>
-                x_left <= "0";
-                x_right <= "0";
-                x_down <= "0";
-                x_up<= "0";
+                movement <= "000";
               end case;
             end if;
           ScanCode_pre <= ScanCode;
