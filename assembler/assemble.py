@@ -38,7 +38,7 @@ def assemble(assembly, settings):
             output = ""
             if len(line) == 1 or ";" in line[1]: # HALT
                 output = (handler(line[0]))(opcodes)
-            elif "," not in line[1]: # JMP, BGE, BEQ etc
+            elif "," not in line[1]: # JMP, BGE, BEQ, SYNC etc
                 output = (handler(line[0]))(line[1:2], opcodes, subr)
             else: # STORE, LOAD, ADD, SUB etc
                 output = (handler(line[0]))(line[1:2], opcodes, adrmodes, adr)
@@ -88,6 +88,7 @@ def handler(opcode):
         'AND': opcalls.op_and,
         'HALT': opcalls.halt,
         'JMP': opcalls.jmp,
+        'SYNC': opcalls.sync,
     }[opcode]
 
 

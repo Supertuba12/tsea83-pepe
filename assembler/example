@@ -18,6 +18,7 @@ LOOP    LOAD    GR0,#0      ; Nolla Pepe rörelse
 ;;; TANGENTBORD
         JMP     KBD
 KBDR    JMP     LOOP
+        SYNC    43
 
 
 KBD     STORE   GR2,$fe

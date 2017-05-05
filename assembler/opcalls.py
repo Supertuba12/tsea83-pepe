@@ -116,3 +116,8 @@ def halt(opcodes):
 def jmp(line, opcodes, subr):
     """ ~ Standard JMP ~ SUBROUTINE """
     return single_arg_op(line, opcodes, subr, 'JMP')
+
+
+def sync(line, opcodes, subr):
+    """ ~ SYNC - ADROP """
+    return print_format(opcodes['SYNC'] + format(0b001000000000 + int(line[0]), '03x'))
