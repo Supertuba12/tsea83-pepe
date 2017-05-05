@@ -5,8 +5,8 @@ use IEEE.NUMERIC_STD.ALL;
 --CPU interface
 entity CPU is
   port(clk          : in std_logic;
-	     rst          : in std_logic;
-	     movement_in  : in unsigned(2 downto 0);
+       rst          : in std_logic;
+       movement_in  : in unsigned(2 downto 0);
        rng_ut       : out unsigned(3 downto 0);
        move_pepe    : out unsigned(2 downto 0));
 end CPU ;
@@ -27,7 +27,7 @@ architecture Behavioral of CPU is
          RW         : in std_logic
          );
   end component;
-  
+
   -- micro memory signals
   signal uM       : unsigned(19 downto 0); -- micro Memory output
   signal uPC      : unsigned(5 downto 0); -- micro Program Counter
@@ -35,7 +35,7 @@ architecture Behavioral of CPU is
   signal uAddr    : unsigned(5 downto 0); -- micro Address ###NOT USED###
   signal TB       : unsigned(2 downto 0); -- To Bus field ###NOT USED###
   signal FB       : unsigned(2 downto 0); -- From Bus field ###NOT USED###
-	signal ALU      : unsigned(2 downto 0); -- ALU operand ###NOT USED###
+  signal ALU      : unsigned(2 downto 0); -- ALU operand ###NOT USED###
   signal K1       : unsigned (5 downto 0); -- K1 signal
   signal K2       : unsigned (5 downto 0); -- K2 signal
   -- program memory signals
@@ -49,7 +49,7 @@ architecture Behavioral of CPU is
   -- Registers
   signal AR       : unsigned(15 downto 0); -- AR register for ALU
   signal AR_pre   : unsigned(15 downto 0); -- AR_pre register used when checking for overflow
-	signal HELP_REG : unsigned(15 downto 0); -- Help register
+  signal HELP_REG : unsigned(15 downto 0); -- Help register
   signal GR       : unsigned(15 downto 0);
   signal GR0      : unsigned(15 downto 0); -- General-use register 
   signal GR1      : unsigned(15 downto 0); -- General-use register
@@ -66,7 +66,6 @@ architecture Behavioral of CPU is
   signal O        : std_logic; -- O = 1 if operation in ALU caused overflow
   -- General signals
   signal counter  : unsigned(16 downto 0);
- 
 
 
 begin
@@ -116,7 +115,7 @@ begin
       end case;
     end if;
   end process;
-	
+
   -- PC : Program Counter
   process(clk)
   begin
@@ -130,7 +129,7 @@ begin
       end if;
     end if;
   end process;
-	
+
   -- IR : Instruction Register
   process(clk)
   begin
@@ -142,7 +141,7 @@ begin
       end if;
     end if;
   end process;
-	
+
   -- ASR : Address Register
   process(clk)
   begin
@@ -167,7 +166,11 @@ begin
         when "001" => -- AR := BUSS
           AR <= DATA_BUS;
         when "010" => -- Undef. Could be set to what we want
-
+          case ADR is
+            when to_unsigned(0, 9) =>
+              pAddr <= x"00fe";
+              move_pepe <= PM;
+          end case;
         when "011" => -- AR := 0
           AR <= to_unsigned(0, 16);
         when "100" => -- AR := AR + BUSS
@@ -240,6 +243,7 @@ begin
     to_unsigned(21, 6)  when "0110", -- Micro adress to JMP
     to_unsigned(22, 6)  when "0111", -- Micro adress to CMP
     to_unsigned(25, 6)  when "1000"; -- Micro adress to HALT
+    to_unsigned(26, 6)  when "1001"; -- Micro adress to SYNC
 
   -- K2 assignment
   with M select K2 <=
@@ -251,7 +255,7 @@ begin
 
   -- program memory component connection
   U1 : pMem port map(pAddr=>ASR, pData_out=>PM, pData_in => AR, RW => RW_s);
-	
+
   -- micro memory signal assignments
   uAddr  <= uM(5 downto 0);
   SEQ    <= uM(9 downto 6);
@@ -272,16 +276,18 @@ begin
     AR        when (TB = "100") else
     GR        when (TB = "110") else
     (others => '0');
-  
+
   -- MuX for general registers
   with GRX select GR <=
     GR0       when "00",
     GR1       when "01",
     GR2       when "10",
     GR3       when "11";
-    
-  -- Read/write decision
-  RW_s <= '1' when (OP = "0001") else '0';
 
+  -- Read/write decision
+  RW_s <= 
+    '1' when (OP = "0001") else
+    '1' when (ALU = "010") else
+    '0';
 
 end Behavioral;
