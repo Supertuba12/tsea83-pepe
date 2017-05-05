@@ -1,3 +1,24 @@
-MAIN         LOAD    GR0,#23
-            STORE   GR0,$ff
-            JMP     MAIN
+; GR3 := Klocka
+; $ff := Klocka framtid
+; $fe := KB_MOVE
+; GR2 := PEPE_IN
+MAIN    JMP     LOOP
+
+
+;;; GAME LOOP
+LOOP    LOAD    GR0,#0      ; Nolla Pepe rörelse
+        STORE   GR0,$fe
+        CMP     GR3,$ff     ; Kolla om något ska hända
+        BGE     LOOP
+;;; VÄNTETID
+        STORE   GR3,$ff
+        LOAD    GR0,$ff
+        ADD     GR0,#100
+        STORE   GR0,$ff
+;;; TANGENTBORD
+        JMP     KBD
+KBDR    JMP     LOOP
+
+
+KBD     STORE   GR2,$fe
+        JMP     KBDR

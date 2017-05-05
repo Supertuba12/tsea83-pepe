@@ -43,7 +43,7 @@ def single_arg_op(line, opcodes, subr, opc):
     if COMMENTS:
         return opcodes[opc] + adr_pos + "; " + opc
     else:
-        return opcodes[opc] + adr_pos
+        return print_format(opcodes[opc] + adr_pos)
 
 
 def double_arg_op(line, opcodes, adrmodes, adr, opc):
@@ -61,9 +61,13 @@ def double_arg_op(line, opcodes, adrmodes, adr, opc):
             return opcodes[opc] + tail_num + "; " + opc
     else:
         if direct:
-            return opcodes[opc] + tail_num + "\n" + format(int(line[1][1:], 16), '04x')
+            return print_format(opcodes[opc] + tail_num) + "\n" + print_format(format(int(line[1][1:], 16), '04x'))
         else:
-            return opcodes[opc] + tail_num
+            return print_format(opcodes[opc] + tail_num)
+
+
+def print_format(output):
+    return "x\"" + output + "\","
 
 
 def load(line, opcodes, adrmodes, adr):
@@ -106,7 +110,7 @@ def halt(opcodes):
     if COMMENTS:
         return opcodes['HALT'] + "000; HALT"
     else:
-        return opcodes['HALT'] + "000"
+        return print_format(opcodes['HALT'] + "000")
 
 
 def jmp(line, opcodes, subr):
