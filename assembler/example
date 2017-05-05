@@ -1,7 +1,3 @@
-MAIN        
-
-KBD         
-
-RND         FETCH   GR0
+MAIN         LOAD    GR0,#23
             STORE   GR0,$ff
-            JMP LOOP
+            JMP     MAIN

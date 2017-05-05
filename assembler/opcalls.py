@@ -1,14 +1,24 @@
+"""
+    16-bit byte code:  |A |B C D        |
+                       |OP|GRX + M + ADR|
+    Bit size:          |4 | 2  + 1 + 9  |
+"""
+
 """ Commented output for debugging """
 COMMENTS = False
 
 def eval_args(line, adrmodes, adr):
-    """ Evaluates adress mode and GRx memory """
+    """Evaluates adress mode and GRx memory """
     direct = False
 
     if line[0] == "GR0":
         grx = 0
-    else:
+    elif line[0] == "GR1":
+        grx = 0b010000000000
+    elif line[0] == "GR2":
         grx = 0b100000000000
+    elif line[0] == "GR3":
+        grx = 0b110000000000
 
     if line[1][0] == "#":
         adrmode = int(adrmodes['DIRECT'])
@@ -20,7 +30,7 @@ def eval_args(line, adrmodes, adr):
         adr_pos = int(line[1][1:], 16)
 
     if adrmode == 1:
-        adrmode_bin = 0b010000000000
+        adrmode_bin = 0b001000000000
     else:
         adrmode_bin = 0
 
