@@ -21,8 +21,11 @@ architecture Behavioral of CPU is
 
   -- program Memory component
   component pMem
-    port(pAddr    : in unsigned(15 downto 0);
-         pData    : out unsigned(15 downto 0));
+    port(pAddr      : in unsigned(15 downto 0);
+         pData_out  : out unsigned(15 downto 0);
+         pData_in   : in unsigned(15 downto 0);
+         RW         : in std_logic
+         );
   end component;
   
   -- micro memory signals
@@ -42,8 +45,10 @@ architecture Behavioral of CPU is
   signal ASR      : unsigned(15 downto 0); -- Address Register
   signal IR       : unsigned(15 downto 0); -- Instruction Register
   signal DATA_BUS : unsigned(15 downto 0); -- Data Bus
+  signal RW_s     : std_logic;             -- Read/Write signal to pMem
   -- Registers
   signal AR       : unsigned(15 downto 0); -- AR register for ALU
+  signal AR_pre   : unsigned(15 downto 0); -- AR_pre register used when checking for overflow
 	signal HELP_REG : unsigned(15 downto 0); -- Help register
   signal GR       : unsigned(15 downto 0);
   signal GR0      : unsigned(15 downto 0); -- General-use register 
@@ -59,7 +64,10 @@ architecture Behavioral of CPU is
   signal Z        : std_logic; -- Z = 1 if value @ AR == 0 else N = 0
   signal N        : std_logic; -- N = 1 if value @ AR < 0 else N = 0
   signal O        : std_logic; -- O = 1 if operation in ALU caused overflow
+  -- General signals
   signal counter  : unsigned(16 downto 0);
+ 
+
 
 begin
   process(clk)
@@ -102,7 +110,7 @@ begin
             uPC <= uAddr;
           end if;
         when "1111" =>
-          -- SHUT THE MACHINE DOWN!!!
+          -- Do some bamboozle thingy
         when others =>
           null;
       end case;
@@ -163,9 +171,43 @@ begin
         when "011" => -- AR := 0
           AR <= to_unsigned(0, 16);
         when "100" => -- AR := AR + BUSS
+          AR_pre <= AR;
           AR <= AR + DATA_BUS;
+          if AR(15 downto 15) = 1 then
+            N <= '1'; 
+          else
+            N <= '0';
+          end if;
+          if AR = 0 then
+            Z <= '1';
+          else
+            Z <= '0';
+          end if;
+          if (AR_pre(15 downto 15) = 1 and DATA_BUS(15 downto 15) = 1 and AR(15 downto 15) = 0) or 
+              (AR_pre(15 downto 15) = 0 and DATA_BUS(15 downto 15) = 0 and AR(15 downto 15) = 1) then
+            O <= '1';
+          else
+            O <= '0';
+          end if;
         when "101" => -- AR := AR - BUSS
+          AR_pre <= AR;
           AR <= AR - DATA_BUS;
+          if AR(15 downto 15) = 1 then
+            N <= '1'; 
+          else
+            N <= '0';
+          end if;
+          if AR = 0 then
+            Z <= '1';
+          else
+            Z <= '0';
+          end if;
+          if (AR_pre(15 downto 15) = 1 and DATA_BUS(15 downto 15) = 1 and AR(15 downto 15) = 0) or 
+              (AR_pre(15 downto 15) = 0 and DATA_BUS(15 downto 15) = 0 and AR(15 downto 15) = 1) then
+            O <= '1';
+          else
+            O <= '0'; 
+          end if; 
         when "110" => -- AR := AR && BUSS
           AR <= AR and DATA_BUS;
         when "111" => -- AR := AR || BUSS
@@ -179,10 +221,11 @@ begin
   -- General registers 
   process(clk)
   begin
+    if rst = '1' then
+      -- Reset all registers? 
+    end if;
     if rising_edge(clk) then
-      if (rst = '1') then
-        -- Reset all registers? 
-      end if;
+     
     end if;
   end process;
 
@@ -207,20 +250,19 @@ begin
   U0 : uMem port map(uAddr=>uPC, uData=>uM);
 
   -- program memory component connection
-  U1 : pMem port map(pAddr=>ASR, pData=>PM);
+  U1 : pMem port map(pAddr=>ASR, pData_out=>PM, pData_in => AR, RW => RW_s);
 	
-   -- micro memory signal assignments
-   uAddr  <= uM(5 downto 0);
-   SEQ    <= uM(9 downto 6);
-   PCsig  <= uM(10);
-   FB     <= uM(13 downto 11);
-   TB     <= uM(16 downto 14);
-   ALU    <= uM(19 downto 17);
-
-   OP     <= IR(15 downto 12);
-   GRX    <= IR(11 downto 10);
-   M      <= IR(9);
-   ADR    <= IR(8 downto 0);
+  -- micro memory signal assignments
+  uAddr  <= uM(5 downto 0);
+  SEQ    <= uM(9 downto 6);
+  PCsig  <= uM(10);
+  FB     <= uM(13 downto 11);
+  TB     <= uM(16 downto 14);
+  ALU    <= uM(19 downto 17);
+  OP     <= IR(15 downto 12);
+  GRX    <= IR(11 downto 10);
+  M      <= IR(9);
+  ADR    <= IR(8 downto 0);
 
   -- data bus assignment
   DATA_BUS <= 
@@ -231,11 +273,15 @@ begin
     GR        when (TB = "110") else
     (others => '0');
   
+  -- MuX for general registers
   with GRX select GR <=
     GR0       when "00",
     GR1       when "01",
     GR2       when "10",
     GR3       when "11";
+    
+  -- Read/write decision
+  RW_s <= '1' when (OP = "0001") else '0';
 
 
 end Behavioral;
