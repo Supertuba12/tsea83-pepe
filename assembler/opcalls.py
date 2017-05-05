@@ -120,4 +120,4 @@ def jmp(line, opcodes, subr):
 
 def sync(line, opcodes, subr):
     """ ~ SYNC - ADROP """
-    return print_format(opcodes['SYNC'] + format(0b001000000000 + int(line[0]), '03x'))
+    return print_format(opcodes['SYNC'] + format(int(line[0]), '03x'))

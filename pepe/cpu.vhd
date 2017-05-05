@@ -69,7 +69,7 @@ architecture Behavioral of CPU is
 
 
 begin
-  GR2 <= movement_in;
+  GR2 <= to_unsigned(0, 16) + movement_in;
   process(clk)
   begin
     if rising_edge(clk) then
@@ -169,8 +169,9 @@ begin
         when "010" => -- Undef. Could be set to what we want
           case ADR is
             when to_unsigned(0, 9) =>
-              pAddr <= x"00fe";
               move_pepe <= PM;
+            when others =>
+              null;
           end case;
         when "011" => -- AR := 0
           AR <= to_unsigned(0, 16);
@@ -243,7 +244,7 @@ begin
     to_unsigned(16, 6)  when "0101", -- Micro adress to BGE
     to_unsigned(21, 6)  when "0110", -- Micro adress to JMP
     to_unsigned(22, 6)  when "0111", -- Micro adress to CMP
-    to_unsigned(25, 6)  when "1000"; -- Micro adress to HALT
+    to_unsigned(25, 6)  when "1000", -- Micro adress to HALT
     to_unsigned(26, 6)  when "1001"; -- Micro adress to SYNC
 
   -- K2 assignment

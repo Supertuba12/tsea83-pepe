@@ -2,8 +2,8 @@
 ; $ff := Klocka framtid
 ; $fe := KB_MOVE
 ; GR2 := PEPE_IN
-MAIN    JMP     LOOP
-
+MAIN    SYNC    0
+        JMP    MAIN
 
 ;;; GAME LOOP
 LOOP    LOAD    GR0,#0      ; Nolla Pepe rörelse
@@ -18,8 +18,6 @@ LOOP    LOAD    GR0,#0      ; Nolla Pepe rörelse
 ;;; TANGENTBORD
         JMP     KBD
 KBDR    JMP     LOOP
-        SYNC    43
 
-
-KBD     STORE   GR2,$fe
+KBD     SYNC   0
         JMP     KBDR
