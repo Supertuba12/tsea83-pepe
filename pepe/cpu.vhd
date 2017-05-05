@@ -69,6 +69,7 @@ architecture Behavioral of CPU is
 
 
 begin
+  GR2 <= movement_in;
   process(clk)
   begin
     if rising_edge(clk) then

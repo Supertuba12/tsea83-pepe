@@ -47,6 +47,10 @@ def assemble(assembly, settings):
 
             adr[0] += 1
 
+        for i in range(adr[0], 512):
+            output_file.write("x\"0000\",\n")
+
+
     output_file.close()
 
 
