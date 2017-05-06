@@ -169,7 +169,7 @@ begin
         when "010" => -- Undef. Could be set to what we want
           case ADR is
             when to_unsigned(0, 9) =>
-              move_pepe <= PM;
+              move_pepe <= PM(2 downto 0);
             when others =>
               null;
           end case;
@@ -256,7 +256,7 @@ begin
   U0 : uMem port map(uAddr=>uPC, uData=>uM);
 
   -- program memory component connection
-  U1 : pMem port map(pAddr=>ASR, pData_out=>PM, pData_in => AR, RW => RW_s);
+  U1 : pMem port map(clk=>clk, pAddr=>ASR, pData_out=>PM, pData_in => AR, RW => RW_s);
 
   -- micro memory signal assignments
   uAddr  <= uM(5 downto 0);
@@ -289,10 +289,13 @@ begin
   -- Read/write decision
   process (clk) begin
     if rising_edge(clk) then
-      RW_s <= 
-        '0' when (OP = "0001") else
-        '0' when (ALU = "010") else
-        '1';
+      if OP = "0001" then
+        RW_s <= '1';
+      elsif ALU = "010" then
+        RW_s <= '1';
+      else
+        RW_s <= '0';
+      end if;
     end if;
   end process;
 
