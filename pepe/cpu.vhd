@@ -21,7 +21,8 @@ architecture Behavioral of CPU is
 
   -- program Memory component
   component pMem
-    port(pAddr      : in unsigned(15 downto 0);
+    port(clk        : in std_logic;
+         pAddr      : in unsigned(15 downto 0);
          pData_out  : out unsigned(15 downto 0);
          pData_in   : in unsigned(15 downto 0);
          RW         : in std_logic
@@ -66,7 +67,6 @@ architecture Behavioral of CPU is
   signal O        : std_logic; -- O = 1 if operation in ALU caused overflow
   -- General signals
   signal counter  : unsigned(16 downto 0);
-
 
 begin
   GR2 <= to_unsigned(0, 16) + movement_in;
@@ -287,9 +287,13 @@ begin
     GR3       when "11";
 
   -- Read/write decision
-  RW_s <= 
-    '1' when (OP = "0001") else
-    '1' when (ALU = "010") else
-    '0';
+  process (clk) begin
+    if rising_edge(clk) then
+      RW_s <= 
+        '0' when (OP = "0001") else
+        '0' when (ALU = "010") else
+        '1';
+    end if;
+  end process;
 
 end Behavioral;

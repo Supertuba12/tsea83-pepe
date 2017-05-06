@@ -19,5 +19,5 @@ LOOP    LOAD    GR0,#0      ; Nolla Pepe rörelse
         JMP     KBD
 KBDR    JMP     LOOP
 
-KBD     SYNC   0
+KBD     SYNC    254
         JMP     KBDR

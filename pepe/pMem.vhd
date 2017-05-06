@@ -4,7 +4,8 @@ use IEEE.NUMERIC_STD.all;
 
 -- pMem interface
 entity pMem is
-  port(pAddr      : in unsigned(15 downto 0);
+  port(clk        : in std_logic;
+       pAddr      : in unsigned(15 downto 0);
        pData_out  : out unsigned(15 downto 0);
        pData_in   : in unsigned(15 downto 0);
        RW         : in std_logic
@@ -15,7 +16,7 @@ architecture Behavioral of pMem is
 
 -- program Memory
 type p_mem_t is array (0 to 511) of unsigned(15 downto 0);
-constant p_mem_c : p_mem_t :=
+signal p_mem : p_mem_t :=
   (
 x"9000",
 x"6000",
@@ -31,7 +32,7 @@ x"0100",
 x"12ff",
 x"600e",
 x"6002",
-x"9000",
+x"90fe",
 x"600d",
 x"0000",
 x"0000",
@@ -530,10 +531,16 @@ x"0000",
 x"0000",
 x"0000");
 
-  signal p_mem : p_mem_t := p_mem_c;
 
 begin  -- pMem
-  pData_out <= p_mem(to_integer(pAddr)) when RW = '1';
-  p_mem(to_integer(pAddr)) <= pData_in when RW = '0';
+  process(clk) begin
+    if rising_edge(clk) then
+      if RW = '1' then
+        p_mem(to_integer(pAddr)) <= pData_in;
+      else
+        pData_out <= p_mem(to_integer(pAddr));
+      end if;
+    end if;
+  end process;
 end Behavioral;
 
