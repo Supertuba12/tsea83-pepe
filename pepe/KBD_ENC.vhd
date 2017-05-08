@@ -87,7 +87,7 @@ begin
             PS2state <= MAKE;
           end if;
         end if;
-      elsif PS2state = BREAK and state = '1' then 
+      elsif PS2state = BREAK and state = '1' then
         PS2state <= IDLE;
       elsif PS2state = MAKE then
         PS2state <= IDLE;
@@ -98,7 +98,9 @@ begin
   process(clk)
     begin
       if rising_edge(clk) then
-        if ScanCode = not(ScanCode_pre) then
+        if ScanCode = ScanCode_pre then
+          movement <= "000";
+        else
           case ScanCode is
             when x"1C" =>
               movement <= "001";
@@ -110,8 +112,8 @@ begin
               movement <= "100";
             when others =>
               movement <= "000";
-            end case;
-          end if;
+          end case;
+        end if;
         ScanCode_pre <= ScanCode;
       end if;
   end process;

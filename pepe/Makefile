@@ -37,6 +37,9 @@ pepe.%: S=pepe.vhd cpu.vhd uMem.vhd pMem.vhd vga.vhd ram.vhd sprite.vhd KBD_ENC.
 #pepe.%: T=pepe.vhd
 pepe.%: U=Nexys3_Master.ucf
 
+cpu.%: S=cpu.vhd uMem.vhd pMem.vhd
+cpu.%: T=cpu_tb.vhd
+#cpu.%: U=Nexys3_Master.ucf
 
 # Det här är ett exempel på hur man kan skriva en testbänk som är
 # relevant, även om man kör en simulering i batchläge (make batchlab.simc)

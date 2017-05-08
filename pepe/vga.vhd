@@ -220,14 +220,14 @@ begin
 process(clk)
   begin
     if rising_edge(clk) then
-      if move_pepe_in = 1 and Xpepe < "1001011111" then
+      if move_pepe_in = "010" and Xpepe < "1001011111" then
         Xpepe <= Xpepe + 1;
-      elsif move_pepe_in = 2 and Xpepe > "0011110000" then
+      elsif move_pepe_in = "001" and Xpepe > "0011110000" then
         Xpepe <= Xpepe - 1;
-      elsif move_pepe_in = 3 and Ypepe <  "0111000000" then
+      elsif move_pepe_in = "011" and Ypepe <  "0111000000" then
         Ypepe <= Ypepe + 1;
-      elsif move_pepe_in = 4 and Ypepe > "0000000000" then
-        Ypepe <= Ypepe + 1;
+      elsif move_pepe_in = "100" and Ypepe > "0000000000" then
+        Ypepe <= Ypepe - 1;
       end if;
     end if;
   end process;
@@ -241,5 +241,4 @@ process(clk)
   vgaGreen(0)   <= tilePixel(2);
   vgaBlue(2)    <= tilePixel(1);
   vgaBlue(1)    <= tilePixel(0);
-
 end Behavioral;

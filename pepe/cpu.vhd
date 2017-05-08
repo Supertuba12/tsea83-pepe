@@ -69,7 +69,7 @@ architecture Behavioral of CPU is
   signal counter  : unsigned(16 downto 0);
 
 begin
-  GR2 <= to_unsigned(0, 16) + movement_in;
+  GR2 <= "0000000000000" & movement_in;
   process(clk)
   begin
     if rising_edge(clk) then
@@ -89,14 +89,10 @@ begin
         uPC <= (others => '0');
       end if;
       case SEQ is
-        when "0000" =>
-          uPC <= uPC + 1;
-        when "0001" =>
-          uPC <= K1;
-        when "0010" =>
-          uPC <= K2;
-        when "0011" =>
-          uPC <= to_unsigned(0, 6);
+        when "0000" => uPC <= uPC + 1;
+        when "0001" => uPC <= K1;
+        when "0010" => uPC <= K2;
+        when "0011" => uPC <= to_unsigned(0, 6);
         when "1000" =>
           if (Z = '1') then -- If flagged value zero -> jump to given adress
             uPC <= uAddr;
@@ -167,9 +163,10 @@ begin
         when "001" => -- AR := BUSS
           AR <= DATA_BUS;
         when "010" => -- Undef. Could be set to what we want
+          
           case ADR is
             when to_unsigned(0, 9) =>
-              move_pepe <= PM(2 downto 0);
+              move_pepe <= GR2(2 downto 0);
             when others =>
               null;
           end case;
@@ -245,13 +242,13 @@ begin
     to_unsigned(21, 6)  when "0110", -- Micro adress to JMP
     to_unsigned(22, 6)  when "0111", -- Micro adress to CMP
     to_unsigned(25, 6)  when "1000", -- Micro adress to HALT
-    to_unsigned(26, 6)  when "1001"; -- Micro adress to SYNC
-
+    to_unsigned(26, 6)  when "1001", -- Micro adress to SYNC
+    to_unsigned(0, 6)   when others;
   -- K2 assignment
   with M select K2 <=
     to_unsigned(3, 6)   when '0', -- Direct mode
-    to_unsigned(4, 6)   when '1'; -- Immediate mode
-
+    to_unsigned(4, 6)   when '1', -- Immediate mode
+    to_unsigned(0, 6)   when others;
   -- micro memory component connection
   U0 : uMem port map(uAddr=>uPC, uData=>uM);
 
@@ -284,7 +281,8 @@ begin
     GR0       when "00",
     GR1       when "01",
     GR2       when "10",
-    GR3       when "11";
+    GR3       when "11",
+    GR0       when others;
 
   -- Read/write decision
   process (clk) begin

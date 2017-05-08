@@ -47,6 +47,6 @@ architecture Behavioral of pepe is
 begin
   U2 : VGA port map(clk, rst, vgaRed, vgaGreen, vgaBlue, Hsync, Vsync, rng_in => rng_bus, move_pepe_in => move_pepe_bus);
   U3 : KBD_ENC port map(clk, PS2KeyboardClk, PS2KeyboardData, movement => movement_bus);
-  U4: CPU port map(clk, rst, movement_in => movement_bus, rng_ut => rng_bus, move_pepe => move_pepe_bus);
+  U4 : CPU port map(clk, rst, movement_in => movement_bus, rng_ut => rng_bus, move_pepe => move_pepe_bus);
 
 end Behavioral;
