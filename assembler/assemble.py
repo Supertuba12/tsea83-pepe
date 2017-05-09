@@ -58,9 +58,6 @@ def assemble(assembly, settings):
                 output_file.write(output + "\n")
 
             adr[0] += 1
-        if not COMMENTS:
-            for i in range(adr[0], 512):
-                output_file.write("x\"0000\",\n")
 
     output_file.close()
 
