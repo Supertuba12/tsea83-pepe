@@ -25,12 +25,15 @@ end VGA;
 architecture Behavioral of VGA is
   signal  data            : std_logic_vector(7 downto 0);
   signal  sprite_data     : std_logic_vector(7 downto 0);
+  signal  highScore_data     : std_logic_vector(7 downto 0);
   signal  Xpixel          : unsigned(9 downto 0);         -- Horizontal pixel counter
   signal  Ypixel          : unsigned(9 downto 0);         -- Vertical pixel counter
   signal  ClkDiv          : unsigned(1 downto 0);         -- Clock divisor, to generate 25 MHz signal
   signal  Clk25           : std_logic;                    -- One pulse width 25 MHz signal
   signal  x_p             : unsigned(6 downto 0);
   signal  y_p             : unsigned(6 downto 0);
+  signal  x_h             : unsigned(6 downto 0);         -- x for highscore
+  signal  y_h             : unsigned(6 downto 0);         -- y for highscore
   signal  tilePixel       : std_logic_vector(7 downto 0); -- Tile pixel data
   signal  home            : unsigned(3 downto 0);         -- Home points at Y in array (0-71)
   signal  home_cp         : unsigned(3 downto 0);
@@ -44,13 +47,16 @@ architecture Behavioral of VGA is
   signal  blank           : std_logic;                    -- blanking signal
   signal  xtile           : unsigned(6 downto 0);
   signal  x_out           : unsigned(9 downto 0);
+  signal  X_pixel_h       : unsigned(6 downto 0);
+  signal  Y_pixel_h       : unsigned(6 downto 0);
   signal  y_out           : unsigned(9 downto 0);
   signal  Xpepe           : unsigned(9 downto 0) := "0110101000";
   signal  Ypepe           : unsigned(9 downto 0) := "0111000000";
-  signal counter                : unsigned(20 downto 0);
-  signal coll            : std_logic;
-  signal done            : std_logic;
-  signal  home_cp_pre         : unsigned(3 downto 0);
+  signal counter          : unsigned(20 downto 0);
+  signal index_h          : unsigned(4 downto 0);
+  signal coll             : std_logic;
+  signal done             : std_logic;
+  signal  home_cp_pre     : unsigned(3 downto 0);
   type lut_t is array (0 to 11) of unsigned(3 downto 0); signal lut : lut_t :=
   ("0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","0000");
 
@@ -68,7 +74,14 @@ architecture Behavioral of VGA is
           y_coord           : in unsigned;
           data_out_sprite   : out std_logic_vector(7 downto 0));
   end component;
-
+  
+  component highscoreMem
+    port (clk               : in std_logic;
+      x                     : in unsigned(6 downto 0); -- Range 0 - 15
+      y                     : in unsigned(6 downto 0); -- Range 0 - 15
+      tileIndex             : in unsigned(4 downto 0); -- Range 0 - 17
+      data_out              : out std_logic_vector(7 downto 0));  
+    end component;
 begin
   -- Clock divisor
   -- Divide system clock (100 MHz) by 4
@@ -180,7 +193,10 @@ begin
   x_p <= xtile;
   x_out <= Xpixel - Xpepe;
   y_out <= Ypixel - Ypepe;
-
+  x_h <= "000" & Xpixel(3 downto 0);
+  y_h <= Ypixel(6 downto 0);
+  index_h <= Xpixel(8 downto 4);
+  
   spritemem : sprite
   port map (
     clk => clk,
@@ -195,13 +211,25 @@ begin
     y => y_p,
     t_pepe => tile_index,
     data_out => data);
+  
+  highscore : highscoreMem
+  port map (
+    clk=> clk,
+    x => x_h,
+    y => y_h,
+    tileIndex => index_h,
+    data_out => highScore_data);
 
   -- Tile memory
   process(clk)
   begin
     if rising_edge(clk) then
       if (blank = '0') then
-        if (Xpixel > 239) then
+        if (Xpixel < 240) then
+          -- Highscore område
+          tilePixel <= highScore_data;
+        elsif (Xpixel > 239) then
+          -- Spelplan
           if (Xpixel >= Xpepe and Xpixel < Xpepe + 32) and (Ypixel >= Ypepe and Ypixel < Ypepe + 32) then
             if sprite_data = "00000000" then
               tilePixel <= data;
@@ -214,12 +242,22 @@ begin
                   when "001" => Xpepe <= Xpepe + 1;
                   when others => Ypepe <= Ypepe + 1;
                 end case;
+              
               elsif (Ypixel - Ypepe) < 17 then
+                if Ypixel - Ypepe < 13 and Ypixel - Ypepe > 5 then
+                case move_pepe_in is
+                  when "010" => Xpepe <= Xpepe - 1;
+                  when "001" => Xpepe <= Xpepe + 1;
+                  when others => null;
+                end case;                
+                
+                else
                 Ypepe <= Ypepe + 1;
-                if (Xpixel - Xpepe < 5) or (Xpixel - Xpepe > 4 and Xpixel - Xpepe < 13) then
+                if (Xpixel - Xpepe < 5 and Xpixel - Xpepe < 13) then
                   Xpepe <= Xpepe + 1;
-                elsif (Xpixel - Xpepe > 26) or (Xpixel - Xpepe < 27 and Xpixel - Xpepe > 18) then
+                elsif (Xpixel - Xpepe > 18) then
                   Xpepe <= Xpepe - 1;
+                end if;
                 end if;
               else
                 if Xpixel - Xpepe < 13 then
@@ -234,8 +272,6 @@ begin
           else
             tilePixel <= data;
           end if;
-        else
-          tilePixel <= (others => '0');
         end if;
       else
         tilePixel <= (others => '0');
@@ -250,7 +286,7 @@ begin
         elsif move_pepe_in = "100" and Ypepe > "0000000000" then
             Ypepe <= Ypepe - 1;
         end if;
-      end if;
+    end if;
     end if;
   end process;
 
