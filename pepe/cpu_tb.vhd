@@ -62,7 +62,7 @@ BEGIN
     report "Reset released" severity note;
     wait for 1 us;
     
-    for i in 0 to 500 loop         -- Vänta ett antal klockcykler
+    for i in 0 to 50000 loop         -- Vänta ett antal klockcykler
       wait until rising_edge(clk);
     end loop;  -- i
     

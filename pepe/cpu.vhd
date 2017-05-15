@@ -10,7 +10,7 @@ entity CPU is
        rnd_out       : out unsigned(3 downto 0);
        move_pepe    : out unsigned(2 downto 0);
        vga_in           : in unsigned(15 downto 0);
-      vga_out          : out unsigned(15 downto 0)
+       vga_out          : out unsigned(15 downto 0)
        );
 end CPU ;
 
@@ -100,17 +100,24 @@ begin
           when "0001" => uPC <= K1;
           when "0010" => uPC <= K2;
           when "0011" => uPC <= to_unsigned(0, 6);
+          when "0101" => uPc <= uAddr_s;
           when "1000" =>
             if (Z = '1') then -- If flagged value zero -> jump to given adress
               uPC <= uAddr_s;
+            else
+              uPc <= uPC + 1;
             end if;
           when "1001" =>
             if (N = '1') then -- If flagged negative value -> jump to given adress
               uPC <= uAddr_s;
+            else
+              uPc <= uPC + 1;
             end if;
           when "1011" =>
             if (O = '1') then  -- If flagged overflow -> jump to given adress
               uPC <= uAddr_s;
+            else
+              uPc <= uPC + 1;
             end if;
           when "1111" =>
             -- Do some bamboozle thingy
@@ -178,41 +185,9 @@ begin
         when "100" => -- AR := AR + BUSS
           AR_pre <= AR;
           AR <= AR + DATA_BUS;
-          if AR(15 downto 15) = 1 then
-            N <= '1'; 
-          else
-            N <= '0';
-          end if;
-          if AR = 0 then
-            Z <= '1';
-          else
-            Z <= '0';
-          end if;
-          if (AR_pre(15 downto 15) = 1 and DATA_BUS(15 downto 15) = 1 and AR(15 downto 15) = 0) or 
-              (AR_pre(15 downto 15) = 0 and DATA_BUS(15 downto 15) = 0 and AR(15 downto 15) = 1) then
-            O <= '1';
-          else
-            O <= '0';
-          end if;
         when "101" => -- AR := AR - BUSS
           AR_pre <= AR;
-          AR <= AR - DATA_BUS;
-          if AR(15 downto 15) = 1 then
-            N <= '1'; 
-          else
-            N <= '0';
-          end if;
-          if AR = 0 then
-            Z <= '1';
-          else
-            Z <= '0';
-          end if;
-          if (AR_pre(15 downto 15) = 1 and DATA_BUS(15 downto 15) = 1 and AR(15 downto 15) = 0) or 
-              (AR_pre(15 downto 15) = 0 and DATA_BUS(15 downto 15) = 0 and AR(15 downto 15) = 1) then
-            O <= '1';
-          else
-            O <= '0'; 
-          end if; 
+          AR <= AR - DATA_BUS; 
         when "110" => -- AR := AR && BUSS
           AR <= AR and DATA_BUS;
         when "111" => -- AR := AR || BUSS
@@ -222,6 +197,10 @@ begin
       end case;
     end if;
   end process;  
+  
+  Z <= '1' when (AR = 0) else '0';
+  N <= '1' when (AR(15 downto 15) = 1) else '0';
+  O <= '1' when ((AR_pre(15 downto 15) = DATA_BUS(15 downto 15)) and (AR(15 downto 15) /= (AR_pre(15 downto 15)))) else '0';
 
  -- General registers 
   process(clk)
@@ -251,9 +230,8 @@ begin
     to_unsigned(21, 6)  when "0110", -- Micro adress to JMP
     to_unsigned(22, 6)  when "0111", -- Micro adress to CMP
     to_unsigned(24, 6)  when "1000", -- Micro adress to HALT
-    to_unsigned(25, 6)  when "1001", -- Micro adress to SYNC
-    to_unsigned(26, 6)  when "1010", -- Micro adress to MOVP
-    to_unsigned(28, 6)  when "1111", -- Micro adress to NOP
+    to_unsigned(25, 6)  when "1001", -- Micro adress to MOVE
+    to_unsigned(26, 6)  when "1111", -- Micro adress to NOP
     to_unsigned(0, 6)   when others;
   -- K2 assignment
   with M select K2 <=
