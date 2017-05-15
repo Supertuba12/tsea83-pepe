@@ -5,7 +5,7 @@
 """
 
 """ Commented output for debugging """
-COMMENTS = True
+COMMENTS = False
 
 def eval_args(line, adrmodes, adr):
     """Evaluates adress mode and GRx memory """
@@ -118,9 +118,9 @@ def jmp(line, opcodes, subr):
     return single_arg_op(line, opcodes, subr, 'JMP')
 
 
-def sync(line, opcodes, subr):
+def move(line, opcodes, subr):
     """ ~ SYNC - ADROP """
     if COMMENTS:
-        return opcodes['SYNC'] + format(int(line[0]), '03x') + "; SYNC"
+        return opcodes['MOVE'] + format(int(line[0]), '03x') + "; MOVE"
     else:
-        return print_format(opcodes['SYNC'] + format(int(line[0]), '03x'))
+        return print_format(opcodes['MOVE'] + format(int(line[0]), '03x'))

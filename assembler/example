@@ -1,6 +1,69 @@
 ; GR3 := Klocka
-; $ff := Klocka framtid
-; $fe := KB_MOVE
+; $ee := Klocka framtid
 ; GR2 := PEPE_IN
-MAIN    SYNC    254
-        JMP    MAIN
+;$ff - siffra 6
+;$fe - siffra 5
+;$fd - siffra 4
+;$fc - siffra 3
+;$fb - siffra 2
+;$fa - siffra 1
+        ADD     GR0,#10
+        STORE   GR0,$ee
+MAIN    MOVE    0
+        CMP     GR3,$ee
+        BGE     SCORE
+        JMP     MAIN
+
+SCORE   LOAD    GR0,$ee
+        ADD     GR0,#10
+        STORE   GR0,$ee
+        LOAD    GR0,$fa
+        ADD     GR0,#1
+        CMP     GR0,#10
+        BGE     ONE
+        JMP     MAIN
+ONE_R   LOAD    GR0,$fb
+        ADD     GR0,#1
+        CMP     GR0,#10
+        BGE     TEN
+        JMP     MAIN
+TEN_R   LOAD    GR0,$fc
+        ADD     GR0,#1
+        CMP     GR0,#10
+        BGE     HUN
+        JMP     MAIN
+HUN_R   LOAD    GR0,$fd
+        ADD     GR0,#1
+        CMP     GR0,#10
+        BGE     THD
+        JMP     MAIN
+THD_R   LOAD    GR0,$fe
+        ADD     GR0,#1
+        CMP     GR0,#10
+        BGE     TTT
+        JMP     MAIN
+TTT_R   LOAD    GR0,$ff
+        ADD     GR0,#1
+        CMP     GR0,#10
+        BGE     TNT
+        JMP     MAIN
+
+ONE     LOAD    GR1,#0
+        STORE   GR1,$fa
+        JMP     ONE_R
+TEN     LOAD    GR1,#0
+        STORE   GR1,$fb
+        JMP     TEN_R
+HUN     LOAD    GR1,#0
+        STORE   GR1,$fc
+        JMP     TEN_R
+THD     LOAD    GR1,#0
+        STORE   GR1,$fd
+        JMP     THD_R
+TTT     LOAD    GR1,#0
+        STORE   GR1,$fe
+        JMP     TTT_R
+TNT     LOAD    GR1,#0
+        STORE   GR1,$ff
+        JMP     MAIN
+

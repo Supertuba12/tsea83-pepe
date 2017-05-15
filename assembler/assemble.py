@@ -103,7 +103,7 @@ def handler(opcode):
         'AND': opcalls.op_and,
         'HALT': opcalls.halt,
         'JMP': opcalls.jmp,
-        'SYNC': opcalls.sync,
+        'MOVE': opcalls.move,
     }[opcode]
 
 
