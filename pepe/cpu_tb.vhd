@@ -58,12 +58,12 @@ BEGIN
     wait until rising_edge(clk);        -- se till att reset släpps synkront
                                         -- med klockan
     rst <= '0';
+    movement_in <= "001";
     report "Reset released" severity note;
     wait for 1 us;
     
     for i in 0 to 500 loop         -- Vänta ett antal klockcykler
       wait until rising_edge(clk);
-      movement_in <= "001";
     end loop;  -- i
     
     tb_running <= false;                -- Stanna klockan (vilket medför att inga

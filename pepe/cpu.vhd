@@ -8,7 +8,8 @@ entity CPU is
        rst          : in std_logic;
        movement_in  : in unsigned(2 downto 0);
        rng_ut       : out unsigned(3 downto 0);
-       move_pepe    : out unsigned(2 downto 0));
+       move_pepe    : out unsigned(2 downto 0)
+       );
 end CPU ;
 
 architecture Behavioral of CPU is
@@ -22,7 +23,7 @@ architecture Behavioral of CPU is
   -- program Memory component
   component pMem
     port(clk        : in std_logic;
-         pAddr      : in unsigned(15 downto 0);
+         pAddr      : in unsigned(8 downto 0);
          pData_out  : out unsigned(15 downto 0);
          pData_in   : in unsigned(15 downto 0);
          RW         : in std_logic
@@ -32,18 +33,18 @@ architecture Behavioral of CPU is
   -- micro memory signals
   signal uM       : unsigned(19 downto 0); -- micro Memory output
   signal uPC      : unsigned(5 downto 0); -- micro Program Counter
-  signal SEQ      : unsigned(3 downto 0); -- uPC controller ###NOT USED###
-  signal uAddr    : unsigned(5 downto 0); -- micro Address ###NOT USED###
-  signal TB       : unsigned(2 downto 0); -- To Bus field ###NOT USED###
-  signal FB       : unsigned(2 downto 0); -- From Bus field ###NOT USED###
-  signal ALU      : unsigned(2 downto 0); -- ALU operand ###NOT USED###
+  signal SEQ      : unsigned(3 downto 0); -- uPC controller
+  signal uAddr_s  : unsigned(5 downto 0); -- micro Address
+  signal TB       : unsigned(2 downto 0); -- To Bus field
+  signal FB       : unsigned(2 downto 0); -- From Bus field
+  signal ALU      : unsigned(2 downto 0); -- ALU operand
   signal K1       : unsigned (5 downto 0); -- K1 signal
   signal K2       : unsigned (5 downto 0); -- K2 signal
   -- program memory signals
   signal PM       : unsigned(15 downto 0); -- Program Memory output
-  signal PC       : unsigned(15 downto 0); -- Program Counter
-  signal PCsig    : std_logic; -- 0:PC=PC, 1:PC++ ###NOT USED###
-  signal ASR      : unsigned(15 downto 0); -- Address Register
+  signal PC       : unsigned(8 downto 0);  -- Program Counter
+  signal PCsig    : std_logic;             -- 0:PC=PC, 1:PC++ 
+  signal ASR      : unsigned(8 downto 0);  -- Address Register                                         changed from 15 to 8
   signal IR       : unsigned(15 downto 0); -- Instruction Register
   signal DATA_BUS : unsigned(15 downto 0); -- Data Bus
   signal RW_s     : std_logic;             -- Read/Write signal to pMem
@@ -67,9 +68,12 @@ architecture Behavioral of CPU is
   signal O        : std_logic; -- O = 1 if operation in ALU caused overflow
   -- General signals
   signal counter  : unsigned(16 downto 0);
+  signal KBD_en_pre : std_logic;
+
 
 begin
-  GR2 <= "0000000000000" & movement_in;
+  
+  -- real time counter
   process(clk)
   begin
     if rising_edge(clk) then
@@ -87,29 +91,30 @@ begin
     if rising_edge(clk) then
       if (rst = '1') then
         uPC <= (others => '0');
+      else
+        case SEQ is
+          when "0000" => uPC <= uPC + 1;
+          when "0001" => uPC <= K1;
+          when "0010" => uPC <= K2;
+          when "0011" => uPC <= to_unsigned(0, 6);
+          when "1000" =>
+            if (Z = '1') then -- If flagged value zero -> jump to given adress
+              uPC <= uAddr_s;
+            end if;
+          when "1001" =>
+            if (N = '1') then -- If flagged negative value -> jump to given adress
+              uPC <= uAddr_s;
+            end if;
+          when "1011" =>
+            if (O = '1') then  -- If flagged overflow -> jump to given adress
+              uPC <= uAddr_s;
+            end if;
+          when "1111" =>
+            -- Do some bamboozle thingy
+          when others =>
+            null;
+        end case;
       end if;
-      case SEQ is
-        when "0000" => uPC <= uPC + 1;
-        when "0001" => uPC <= K1;
-        when "0010" => uPC <= K2;
-        when "0011" => uPC <= to_unsigned(0, 6);
-        when "1000" =>
-          if (Z = '1') then -- If flagged value zero -> jump to given adress
-            uPC <= uAddr;
-          end if;
-        when "1001" =>
-          if (N = '1') then -- If flagged negative value -> jump to given adress
-            uPC <= uAddr;
-          end if;
-        when "1011" =>
-          if (O = '1') then  -- If flagged overflow -> jump to given adress
-            uPC <= uAddr;
-          end if;
-        when "1111" =>
-          -- Do some bamboozle thingy
-        when others =>
-          null;
-      end case;
     end if;
   end process;
 
@@ -120,9 +125,11 @@ begin
       if (rst = '1') then
         PC <= (others => '0');
       elsif (FB = "011") then
-        PC <= DATA_BUS;
+        PC <= DATA_BUS(8 downto 0);
       elsif (PCsig = '1') then
         PC <= PC + 1;
+      else 
+        null;
       end if;
     end if;
   end process;
@@ -146,7 +153,7 @@ begin
       if (rst = '1') then
         ASR <= (others => '0');
       elsif (FB = "111") then
-        ASR <= DATA_BUS;
+        ASR <= DATA_BUS(8 downto 0);
       end if;
     end if;
   end process;
@@ -162,14 +169,8 @@ begin
       case ALU is
         when "001" => -- AR := BUSS
           AR <= DATA_BUS;
-        when "010" => -- Undef. Could be set to what we want
-          
-          case ADR is
-            when to_unsigned(0, 9) =>
-              move_pepe <= GR2(2 downto 0);
-            when others =>
-              null;
-          end case;
+        when "010" => -- SYNC
+          move_pepe <= movement_in;
         when "011" => -- AR := 0
           AR <= to_unsigned(0, 16);
         when "100" => -- AR := AR + BUSS
@@ -241,8 +242,10 @@ begin
     to_unsigned(16, 6)  when "0101", -- Micro adress to BGE
     to_unsigned(21, 6)  when "0110", -- Micro adress to JMP
     to_unsigned(22, 6)  when "0111", -- Micro adress to CMP
-    to_unsigned(25, 6)  when "1000", -- Micro adress to HALT
-    to_unsigned(26, 6)  when "1001", -- Micro adress to SYNC
+    to_unsigned(24, 6)  when "1000", -- Micro adress to HALT
+    to_unsigned(25, 6)  when "1001", -- Micro adress to SYNC
+    to_unsigned(26, 6)  when "1010", -- Micro adress to MOVP
+    to_unsigned(28, 6)  when "1111", -- Micro adress to NOP
     to_unsigned(0, 6)   when others;
   -- K2 assignment
   with M select K2 <=
@@ -256,12 +259,14 @@ begin
   U1 : pMem port map(clk=>clk, pAddr=>ASR, pData_out=>PM, pData_in => AR, RW => RW_s);
 
   -- micro memory signal assignments
-  uAddr  <= uM(5 downto 0);
+  uAddr_s  <= uM(5 downto 0);
   SEQ    <= uM(9 downto 6);
   PCsig  <= uM(10);
   FB     <= uM(13 downto 11);
   TB     <= uM(16 downto 14);
   ALU    <= uM(19 downto 17);
+  
+  -- Instruction register signal assignments
   OP     <= IR(15 downto 12);
   GRX    <= IR(11 downto 10);
   M      <= IR(9);
@@ -269,11 +274,11 @@ begin
 
   -- data bus assignment
   DATA_BUS <= 
-    IR        when (TB = "001") else
-    PM        when (TB = "010") else
-    PC        when (TB = "011") else
-    AR        when (TB = "100") else
-    GR        when (TB = "110") else
+    IR                        when (TB = "001") else
+    PM                        when (TB = "010") else
+    to_unsigned(0, 16) + PC   when (TB = "011") else
+    AR                        when (TB = "100") else
+    GR                        when (TB = "110") else
     (others => '0');
 
   -- MuX for general registers
