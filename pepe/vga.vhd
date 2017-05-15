@@ -225,7 +225,7 @@ begin
   begin
     if rising_edge(clk) then
       if (blank = '0') then
-        if (Xpixel < 240) then
+        if (Xpixel < 240 and Ypixel < 16) then
           -- Highscore område
           tilePixel <= highScore_data;
         elsif (Xpixel > 239) then

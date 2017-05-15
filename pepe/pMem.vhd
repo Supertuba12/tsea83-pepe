@@ -18,6 +18,8 @@ architecture Behavioral of pMem is
 type p_mem_t is array (0 to 511) of unsigned(15 downto 0);
 signal p_mem : p_mem_t :=
   (
+x"9000",
+x"6000",
 x"0601",
 x"0040",
 x"0203",
