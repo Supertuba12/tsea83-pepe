@@ -47,7 +47,10 @@ architecture Behavioral of VGA is
   signal  y_out           : unsigned(9 downto 0);
   signal  Xpepe           : unsigned(9 downto 0) := "0110101000";
   signal  Ypepe           : unsigned(9 downto 0) := "0111000000";
-
+  signal counter                : unsigned(20 downto 0);
+  signal coll            : std_logic;
+  signal done            : std_logic;
+  signal  home_cp_pre         : unsigned(3 downto 0);
   type lut_t is array (0 to 11) of unsigned(3 downto 0); signal lut : lut_t :=
   ("0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","0000");
 
@@ -202,10 +205,33 @@ begin
           if (Xpixel >= Xpepe and Xpixel < Xpepe + 32) and (Ypixel >= Ypepe and Ypixel < Ypepe + 32) then
             if sprite_data = "00000000" then
               tilePixel <= data;
-            else
+            elsif data = "00000000" then
               tilePixel <= sprite_data;
+            else
+              if (Ypixel - Ypepe) = 17 then
+                case move_pepe_in is
+                  when "010" => Xpepe <= Xpepe - 1;
+                  when "001" => Xpepe <= Xpepe + 1;
+                  when others => Ypepe <= Ypepe + 1;
+                end case;
+              elsif (Ypixel - Ypepe) < 17 then
+                Ypepe <= Ypepe + 1;
+                if (Xpixel - Xpepe < 5) or (Xpixel - Xpepe > 4 and Xpixel - Xpepe < 13) then
+                  Xpepe <= Xpepe + 1;
+                elsif (Xpixel - Xpepe > 26) or (Xpixel - Xpepe < 27 and Xpixel - Xpepe > 18) then
+                  Xpepe <= Xpepe - 1;
+                end if;
+              else
+                if Xpixel - Xpepe < 13 then
+                  Xpepe <= Xpepe + 1;
+                elsif Xpixel - Xpepe > 18 then
+                  Xpepe <= Xpepe - 1;
+                else
+                  Ypepe <= Ypepe - 1;
+                end if;
+              end if;
             end if;
-          else  
+          else
             tilePixel <= data;
           end if;
         else
@@ -214,21 +240,24 @@ begin
       else
         tilePixel <= (others => '0');
       end if;
+    if counter = 0 then
+        if move_pepe_in = "010" and Xpepe < "1001011111" then
+            Xpepe <= Xpepe + 1;
+        elsif move_pepe_in = "001" and Xpepe > "0011110000" then
+            Xpepe <= Xpepe - 1;
+        elsif move_pepe_in = "011" and Ypepe <  "0111000000" then
+            Ypepe <= Ypepe + 1;
+        elsif move_pepe_in = "100" and Ypepe > "0000000000" then
+            Ypepe <= Ypepe - 1;
+        end if;
+      end if;
     end if;
   end process;
 
-process(clk)
+    process(clk)
   begin
     if rising_edge(clk) then
-      if move_pepe_in = "010" and Xpepe < "1001011111" then
-        Xpepe <= Xpepe + 1;
-      elsif move_pepe_in = "001" and Xpepe > "0011110000" then
-        Xpepe <= Xpepe - 1;
-      elsif move_pepe_in = "011" and Ypepe <  "0111000000" then
-        Ypepe <= Ypepe + 1;
-      elsif move_pepe_in = "100" and Ypepe > "0000000000" then
-        Ypepe <= Ypepe - 1;
-      end if;
+      counter <= counter + 1;
     end if;
   end process;
 

@@ -98,9 +98,6 @@ begin
   process(clk)
     begin
       if rising_edge(clk) then
-        if ScanCode = ScanCode_pre then
-          movement <= "000";
-        else
           case ScanCode is
             when x"1C" =>
               movement <= "001";
@@ -113,9 +110,9 @@ begin
             when others =>
               movement <= "000";
           end case;
-        end if;
-        ScanCode_pre <= ScanCode;
       end if;
   end process;
+
+
 
 end behavioral;
