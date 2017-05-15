@@ -18,6 +18,8 @@ architecture Behavioral of pepe is
   signal movement_bus       : unsigned(2 downto 0);
   signal rnd_bus            : unsigned(3 downto 0);
   signal move_pepe_bus      : unsigned(2 downto 0);
+  signal score_bus          : unsigned(15 downto 0);
+  signal vga_bus            : unsigned(15 downto 0);
   --signal p_mem_bus          : unsigned(15 downto 0);
   component VGA
     port (clk               : in std_logic;
@@ -50,8 +52,8 @@ architecture Behavioral of pepe is
          movement         : out unsigned(2 downto 0));
   end component;
 begin
-  U2 : VGA port map(clk, rst, vgaRed, vgaGreen, vgaBlue, Hsync, Vsync, rnd_in => rnd_bus, move_pepe_in => move_pepe_bus, score_in => vga_out, score_out => vga_in);
+  U2 : VGA port map(clk, rst, vgaRed, vgaGreen, vgaBlue, Hsync, Vsync, rnd_in => rnd_bus, move_pepe_in => move_pepe_bus, score_in => vga_bus, score_out => score_bus);
   U3 : KBD_ENC port map(clk, PS2KeyboardClk, PS2KeyboardData, movement => movement_bus);
-  U4 : CPU port map(clk, rst, movement_in => movement_bus, rnd_out => rnd_bus, move_pepe => move_pepe_bus, vga_out => score_in, vga_in => score_out);
+  U4 : CPU port map(clk, rst, movement_in => movement_bus, rnd_out => rnd_bus, move_pepe => move_pepe_bus, vga_out => vga_bus, vga_in => score_bus);
 
 end Behavioral;

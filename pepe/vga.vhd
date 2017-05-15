@@ -17,7 +17,9 @@ entity VGA is
     Hsync             : out std_logic;
     Vsync             : out std_logic;
     rnd_in            : in unsigned(3 downto 0);
-    move_pepe_in      : in unsigned(2 downto 0)
+    move_pepe_in      : in unsigned(2 downto 0);
+    score_in          : in unsigned(15 downto 0);
+    score_out         : out unsigned(15 downto 0)
     );
 end VGA;
 
