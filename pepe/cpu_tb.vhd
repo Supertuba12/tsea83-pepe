@@ -11,18 +11,18 @@ ARCHITECTURE behavior OF cpu_tb IS
 
   -- Component Declaration
   COMPONENT cpu
-    port(clk          : in std_logic;
-       rst          : in std_logic;
-       movement_in  : in unsigned(2 downto 0);
-       rng_ut       : out unsigned(3 downto 0);
-       move_pepe    : out unsigned(2 downto 0));
+    port(clk         : in std_logic;
+        rst          : in std_logic;
+        movement_in  : in unsigned(2 downto 0)   := to_unsigned(0, 3);
+        rnd_out      : out unsigned(3 downto 0)  := to_unsigned(0, 4);
+        move_pepe    : out unsigned(2 downto 0)  := to_unsigned(0, 3));
     end component ;
 
-  SIGNAL clk : std_logic := '0';
-  SIGNAL rst : std_logic := '0';
-  signal movement_in : unsigned(2 downto 0) := "000" ;
-  SIGNAL tb_running : boolean := true;
-  signal rng_ut       : unsigned(3 downto 0);
+  signal clk          : std_logic := '0';
+  signal rst          : std_logic := '0';
+  signal movement_in  : unsigned(2 downto 0) := "000" ;
+  signal tb_running   : boolean := true;
+  signal rnd_out       : unsigned(3 downto 0);
   signal move_pepe    : unsigned(2 downto 0);
 BEGIN
 
@@ -31,7 +31,7 @@ BEGIN
     clk => clk,
     rst => rst,
     movement_in => movement_in,
-    rng_ut => rng_ut,
+    rnd_out => rnd_out,
     move_pepe => move_pepe);
 
 

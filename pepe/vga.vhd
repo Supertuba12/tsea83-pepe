@@ -16,7 +16,7 @@ entity VGA is
     vgaBlue           : out std_logic_vector(2 downto 1);
     Hsync             : out std_logic;
     Vsync             : out std_logic;
-    rng_in            : in unsigned(3 downto 0);
+    rnd_in            : in unsigned(3 downto 0);
     move_pepe_in      : in unsigned(2 downto 0)
     );
 end VGA;
