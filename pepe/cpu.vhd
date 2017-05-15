@@ -8,7 +8,9 @@ entity CPU is
        rst          : in std_logic;
        movement_in  : in unsigned(2 downto 0);
        rnd_out       : out unsigned(3 downto 0);
-       move_pepe    : out unsigned(2 downto 0)
+       move_pepe    : out unsigned(2 downto 0);
+       vga_in           : in unsigned(15 downto 0);
+      vga_out          : out unsigned(15 downto 0)
        );
 end CPU ;
 
@@ -72,7 +74,8 @@ architecture Behavioral of CPU is
 
 
 begin
-  
+  GR2 <= vga_in;
+  vga_out <= GR1;
   -- real time counter
   process(clk)
   begin
@@ -230,10 +233,6 @@ begin
         case GRX is
         when "00" =>
           GR0 <= DATA_BUS;
-        when "01" =>
-          GR1 <= DATA_BUS;
-        when "10" =>
-          GR2 <= DATA_BUS;
         when others =>
           null;
         end case;  

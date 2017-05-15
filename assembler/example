@@ -1,6 +1,7 @@
 ; GR3 := Klocka
 ; $ee := Klocka framtid
-; GR2 := PEPE_IN
+; GR2 := VGA_IN
+; GR1 := VGA_OUT
 ;$ff - siffra 6
 ;$fe - siffra 5
 ;$fd - siffra 4
@@ -10,7 +11,8 @@
         ADD     GR0,#10
         STORE   GR0,$ee
 MAIN    MOVE    0
-        CMP     GR3,$ee
+        JMP     SEND
+TIME    CMP     GR3,$ee
         BGE     SCORE
         JMP     MAIN
 
@@ -48,22 +50,48 @@ TTT_R   LOAD    GR0,$ff
         BGE     TNT
         JMP     MAIN
 
-ONE     LOAD    GR1,#0
-        STORE   GR1,$fa
+ONE     LOAD    GR0,#0
+        STORE   GR0,$fa
         JMP     ONE_R
-TEN     LOAD    GR1,#0
-        STORE   GR1,$fb
+TEN     LOAD    GR0,#0
+        STORE   GR0,$fb
         JMP     TEN_R
-HUN     LOAD    GR1,#0
-        STORE   GR1,$fc
+HUN     LOAD    GR0,#0
+        STORE   GR0,$fc
         JMP     TEN_R
-THD     LOAD    GR1,#0
-        STORE   GR1,$fd
+THD     LOAD    GR0,#0
+        STORE   GR0,$fd
         JMP     THD_R
-TTT     LOAD    GR1,#0
-        STORE   GR1,$fe
+TTT     LOAD    GR0,#0
+        STORE   GR0,$fe
         JMP     TTT_R
-TNT     LOAD    GR1,#0
-        STORE   GR1,$ff
+TNT     LOAD    GR0,#0
+        STORE   GR0,$ff
         JMP     MAIN
 
+SEND    CMP     GR2,#6
+        BGE     SIXTH
+        CMP     GR2,#5
+        BGE     SIXTH
+        CMP     GR2,#4
+        BGE     SIXTH
+        CMP     GR2,#3
+        BGE     SIXTH
+        CMP     GR2,#2
+        BGE     SIXTH
+        CMP     GR2,#1
+        BGE     FIRST
+        JMP     TIME
+
+FIRST   STORE   GR1,$fa
+        JMP     TIME
+SECOND  STORE   GR1,$fb
+        JMP     TIME
+THIRD   STORE   GR1,$fc
+        JMP     TIME
+FOURTH  STORE   GR1,$fd
+        JMP     TIME
+FIFTH   STORE   GR1,$fe
+        JMP     TIME
+SIXTH   STORE   GR1,$ff
+        JMP     TIME
