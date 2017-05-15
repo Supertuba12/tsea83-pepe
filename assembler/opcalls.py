@@ -5,11 +5,11 @@
 """
 
 """ Commented output for debugging """
-COMMENTS = False
+COMMENTS = True
 
 def eval_args(line, adrmodes, adr):
     """Evaluates adress mode and GRx memory """
-    direct = False
+    immidiete = False
 
     if line[0] == "GR0":
         grx = 0
@@ -21,12 +21,12 @@ def eval_args(line, adrmodes, adr):
         grx = 0b110000000000
 
     if line[1][0] == "#":
-        adrmode = int(adrmodes['DIRECT'])
+        adrmode = int(adrmodes['IMMIDIETE'])
         adr_pos = adr[0] + 1
-        direct = True
+        immidiete = True
         adr[0] += 1
     else:
-        adrmode = int(adrmodes['ABSOLUTE'])
+        adrmode = int(adrmodes['DIRECT'])
         adr_pos = int(line[1][1:], 16)
 
     if adrmode == 1:
@@ -34,7 +34,7 @@ def eval_args(line, adrmodes, adr):
     else:
         adrmode_bin = 0
 
-    return (direct, format((grx + adrmode_bin + adr_pos), '03x'))
+    return (immidiete, format((grx + adrmode_bin + adr_pos), '03x'))
 
 
 def single_arg_op(line, opcodes, subr, opc):
@@ -51,16 +51,16 @@ def double_arg_op(line, opcodes, adrmodes, adr, opc):
         is the same. """
     line = line[0].split(',')
     arg_result = eval_args(line, adrmodes, adr)
-    direct = arg_result[0]
+    immidiete = arg_result[0]
     tail_num = arg_result[1]
 
     if COMMENTS:
-        if direct:
+        if immidiete:
             return opcodes[opc] + tail_num + "; " + opc + "\n" + format(int(line[1][1:], 16), '04x')
         else:
             return opcodes[opc] + tail_num + "; " + opc
     else:
-        if direct:
+        if immidiete:
             return print_format(opcodes[opc] + tail_num) + "\n" + print_format(format(int(line[1][1:], 16), '04x'))
         else:
             return print_format(opcodes[opc] + tail_num)

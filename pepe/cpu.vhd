@@ -7,7 +7,7 @@ entity CPU is
   port(clk          : in std_logic;
        rst          : in std_logic;
        movement_in  : in unsigned(2 downto 0);
-       rng_ut       : out unsigned(3 downto 0);
+       rnd_out       : out unsigned(3 downto 0);
        move_pepe    : out unsigned(2 downto 0)
        );
 end CPU ;
@@ -31,43 +31,43 @@ architecture Behavioral of CPU is
   end component;
 
   -- micro memory signals
-  signal uM       : unsigned(19 downto 0); -- micro Memory output
-  signal uPC      : unsigned(5 downto 0); -- micro Program Counter
-  signal SEQ      : unsigned(3 downto 0); -- uPC controller
-  signal uAddr_s  : unsigned(5 downto 0); -- micro Address
-  signal TB       : unsigned(2 downto 0); -- To Bus field
-  signal FB       : unsigned(2 downto 0); -- From Bus field
-  signal ALU      : unsigned(2 downto 0); -- ALU operand
-  signal K1       : unsigned (5 downto 0); -- K1 signal
-  signal K2       : unsigned (5 downto 0); -- K2 signal
+  signal uM       : unsigned(19 downto 0) := to_unsigned(0, 20);    -- micro Memory output
+  signal uPC      : unsigned(5 downto 0)  := to_unsigned(0, 6);    -- micro Program Counter
+  signal SEQ      : unsigned(3 downto 0)  := to_unsigned(0, 4);    -- uPC controller
+  signal uAddr_s  : unsigned(5 downto 0)  := to_unsigned(0, 6);    -- micro Address
+  signal TB       : unsigned(2 downto 0)  := to_unsigned(0, 3);    -- To Bus field
+  signal FB       : unsigned(2 downto 0)  := to_unsigned(0, 3);    -- From Bus field
+  signal ALU      : unsigned(2 downto 0)  := to_unsigned(0, 3);    -- ALU operand
+  signal K1       : unsigned (5 downto 0) := to_unsigned(0, 6);    -- K1 signal
+  signal K2       : unsigned (5 downto 0) := to_unsigned(0, 6);    -- K2 signal
   -- program memory signals
-  signal PM       : unsigned(15 downto 0); -- Program Memory output
-  signal PC       : unsigned(8 downto 0);  -- Program Counter
-  signal PCsig    : std_logic;             -- 0:PC=PC, 1:PC++ 
-  signal ASR      : unsigned(8 downto 0);  -- Address Register                                         changed from 15 to 8
-  signal IR       : unsigned(15 downto 0); -- Instruction Register
-  signal DATA_BUS : unsigned(15 downto 0); -- Data Bus
-  signal RW_s     : std_logic;             -- Read/Write signal to pMem
+  signal PM       : unsigned(15 downto 0) := to_unsigned(0, 16);    -- Program Memory output
+  signal PC       : unsigned(8 downto 0)  := to_unsigned(0, 9);     -- Program Counter
+  signal PCsig    : std_logic             := '0';                   -- 0:PC=PC, 1:PC++ 
+  signal ASR      : unsigned(8 downto 0)  := to_unsigned(0, 9);     -- Address Register
+  signal IR       : unsigned(15 downto 0) := to_unsigned(0, 16);    -- Instruction Register
+  signal DATA_BUS : unsigned(15 downto 0) := to_unsigned(0, 16);    -- Data Bus
+  signal RW_s     : std_logic             := '0';                   -- Read/Write signal to pMem
   -- Registers
-  signal AR       : unsigned(15 downto 0); -- AR register for ALU
-  signal AR_pre   : unsigned(15 downto 0); -- AR_pre register used when checking for overflow
-  signal HELP_REG : unsigned(15 downto 0); -- Help register
-  signal GR       : unsigned(15 downto 0);
-  signal GR0      : unsigned(15 downto 0); -- General-use register 
-  signal GR1      : unsigned(15 downto 0); -- General-use register
-  signal GR2      : unsigned(15 downto 0);
-  signal GR3      : unsigned(15 downto 0) := to_unsigned(0, 16);   -- millisecond clock
+  signal AR       : unsigned(15 downto 0) := to_unsigned(0, 16);    -- AR register for ALU
+  signal AR_pre   : unsigned(15 downto 0) := to_unsigned(0, 16);    -- AR_pre register used when checking for overflow
+  signal HELP_REG : unsigned(15 downto 0) := to_unsigned(0, 16);    -- Help register
+  signal GR       : unsigned(15 downto 0) := to_unsigned(0, 16);   
+  signal GR0      : unsigned(15 downto 0) := to_unsigned(0, 16);   
+  signal GR1      : unsigned(15 downto 0) := to_unsigned(0, 16);   
+  signal GR2      : unsigned(15 downto 0) := to_unsigned(0, 16);   
+  signal GR3      : unsigned(15 downto 0) := to_unsigned(0, 16);    -- millisecond clock
   -- IR parts
-  signal OP       : unsigned(3 downto 0);
-  signal GRX      : unsigned(1 downto 0);
-  signal M        : std_logic;
-  signal ADR      : unsigned(8 downto 0);
+  signal OP       : unsigned(3 downto 0)  := to_unsigned(0, 4);   
+  signal GRX      : unsigned(1 downto 0)  := to_unsigned(0, 2);
+  signal M        : std_logic             := '0';
+  signal ADR      : unsigned(8 downto 0)  := to_unsigned(0, 9);   
   -- Flags
-  signal Z        : std_logic; -- Z = 1 if value @ AR == 0 else N = 0
-  signal N        : std_logic; -- N = 1 if value @ AR < 0 else N = 0
-  signal O        : std_logic; -- O = 1 if operation in ALU caused overflow
+  signal Z        : std_logic             := '0'; -- Z = 1 if value @ AR == 0 else N = 0
+  signal N        : std_logic             := '0'; -- N = 1 if value @ AR < 0 else N = 0
+  signal O        : std_logic             := '0'; -- O = 1 if operation in ALU caused overflow
   -- General signals
-  signal counter  : unsigned(16 downto 0);
+  signal counter  : unsigned(16 downto 0) := to_unsigned(0, 17);   
   signal KBD_en_pre : std_logic;
 
 
@@ -163,7 +163,6 @@ begin
   begin
     if rising_edge(clk) then
       if (rst = '1') then
-        -- Maybe reset AR?
         AR <= (others => '0');
       end if;
       case ALU is
@@ -221,16 +220,26 @@ begin
     end if;
   end process;  
 
-  -- General registers 
+ -- General registers 
   process(clk)
   begin
-    if rst = '1' then
-      -- Reset all registers? 
-    end if;
     if rising_edge(clk) then
-     
+      if rst = '1' then
+        -- first reset grx to something then say gr = grx
+      elsif FB = "110" then
+        case GRX is
+        when "00" =>
+          GR0 <= DATA_BUS;
+        when "01" =>
+          GR1 <= DATA_BUS;
+        when "10" =>
+          GR2 <= DATA_BUS;
+        when others =>
+          null;
+        end case;  
+      end if;
     end if;
-  end process;
+  end process; 
 
   -- K1 memory
   with OP select K1 <=
@@ -256,15 +265,15 @@ begin
   U0 : uMem port map(uAddr=>uPC, uData=>uM);
 
   -- program memory component connection
-  U1 : pMem port map(clk=>clk, pAddr=>ASR, pData_out=>PM, pData_in => AR, RW => RW_s);
+  U1 : pMem port map(clk=>clk, pAddr=>ASR, pData_out=>PM, pData_in=>DATA_BUS, RW=>RW_s);
 
   -- micro memory signal assignments
-  uAddr_s  <= uM(5 downto 0);
-  SEQ    <= uM(9 downto 6);
-  PCsig  <= uM(10);
-  FB     <= uM(13 downto 11);
-  TB     <= uM(16 downto 14);
-  ALU    <= uM(19 downto 17);
+  uAddr_s <= uM(5 downto 0);
+  SEQ     <= uM(9 downto 6);
+  PCsig   <= uM(10);
+  FB      <= uM(13 downto 11);
+  TB      <= uM(16 downto 14);
+  ALU     <= uM(19 downto 17);
   
   -- Instruction register signal assignments
   OP     <= IR(15 downto 12);
@@ -288,18 +297,7 @@ begin
     GR2       when "10",
     GR3       when "11",
     GR0       when others;
-
-  -- Read/write decision
-  process (clk) begin
-    if rising_edge(clk) then
-      if OP = "0001" then
-        RW_s <= '1';
-      elsif ALU = "010" then
-        RW_s <= '1';
-      else
-        RW_s <= '0';
-      end if;
-    end if;
-  end process;
+  
+  RW_s <= '1' when (uPC = "000110") else '0';
 
 end Behavioral;
