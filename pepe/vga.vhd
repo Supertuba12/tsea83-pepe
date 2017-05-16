@@ -59,9 +59,14 @@ architecture Behavioral of VGA is
   signal  coll            : std_logic;
   signal  done            : std_logic;
   signal  home_cp_pre     : unsigned(3 downto 0);
+  signal  score_out_s     : unsigned(15 downto 0);
+  signal  score_num_id    : unsigned(15 downto 0);
   
   type lut_t is array (0 to 11) of unsigned(3 downto 0); signal lut : lut_t :=
   ("0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","0000");
+  
+  signal index_save : lut_t :=
+  ("0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000");
 
   component ram
     port (clk       : in std_logic;
@@ -128,6 +133,14 @@ begin
   begin
     if rising_edge(clk) then
       if Clk25 = '1' and Xpixel = 799 then
+        if Ypixel(3 downto 0) < 7 then
+          score_out <= to_unsigned(0, 12) & Ypixel(3 downto 0);
+          score_out_s <= to_unsigned(0, 12) & Ypixel(3 downto 0);
+        else
+          score_out <= to_unsigned(1, 16);
+          score_out_s <= to_unsigned(1, 16);
+        end if;
+        index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
         if Ypixel = 520 then
           Ypixel <= (others => '0');
           time_clk <= time_clk + 1;
@@ -198,8 +211,8 @@ begin
   y_out <= Ypixel - Ypepe;
   x_h <= "000" & Xpixel(3 downto 0);
   y_h <= Ypixel(6 downto 0);
-  index_h <= Xpixel(8 downto 4) + 10 when (Xpixel < 144) else score_in(4 downto 0);
-  score_out <= to_unsigned(0, 11) & (Xpixel(8 downto 4) - 8) when (Xpixel >= 144) else to_unsigned(0, 16);
+  score_num_id <= to_unsigned(0, 11) & (Xpixel(8 downto 4) - 8);
+  index_h <= (Xpixel(8 downto 4) + 10) when (Xpixel < 144) else ("0" & index_save(to_integer(score_num_id)));
   
   spritemem : sprite
   port map (
