@@ -141,7 +141,9 @@ begin
           score_out_s <= to_unsigned(0, 16);
         end if;
         if score_out_s = 0 then
-          index_save(to_integer(score_out_s)) <= score_in(4 downto 1);
+          if index_save(to_integer(score_out_s)) /= score_in(3 downto 0) then
+            index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
+          end if;
         else
           index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
         end if;
