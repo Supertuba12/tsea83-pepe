@@ -140,7 +140,6 @@ x"04ed",
 x"6007",
 others => x"0000");
 
-
 begin  -- pMem
   process(clk) begin
     if rising_edge(clk) then
@@ -151,4 +150,3 @@ begin  -- pMem
   end process;
   pData_out <= p_mem(to_integer(pAddr));
 end Behavioral;
-

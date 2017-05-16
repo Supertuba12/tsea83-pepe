@@ -140,7 +140,11 @@ begin
           score_out <= to_unsigned(0, 16);
           score_out_s <= to_unsigned(0, 16);
         end if;
-        index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
+        if score_out_s = 0 then
+          index_save(to_integer(score_out_s)) <= score_in(4 downto 1);
+        else
+          index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
+        end if;
         if Ypixel = 520 then
           Ypixel <= (others => '0');
           time_clk <= time_clk + 1;
