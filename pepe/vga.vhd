@@ -137,8 +137,8 @@ begin
           score_out <= to_unsigned(0, 12) & Ypixel(3 downto 0);
           score_out_s <= to_unsigned(0, 12) & Ypixel(3 downto 0);
         else
-          score_out <= to_unsigned(1, 16);
-          score_out_s <= to_unsigned(1, 16);
+          score_out <= to_unsigned(0, 16);
+          score_out_s <= to_unsigned(0, 16);
         end if;
         index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
         if Ypixel = 520 then
@@ -204,7 +204,6 @@ begin
   -- Video blanking signal
   blank <= '1' when ((Xpixel > 639 and Xpixel <= 799) or (Ypixel > 479 and Ypixel <= 520)) else '0';
 
-  tile_index <= lut(to_integer(home_cp));
   y_p <= y_tile_cp;
   x_p <= xtile;
   x_out <= Xpixel - Xpepe;
@@ -213,7 +212,19 @@ begin
   y_h <= Ypixel(6 downto 0);
   score_num_id <= to_unsigned(0, 11) & (Xpixel(8 downto 4) - 8);
   index_h <= (Xpixel(8 downto 4) + 10) when (Xpixel < 144) else ("0" & index_save(to_integer(score_num_id)));
-  
+
+  process(clk)
+  begin
+    if rising_edge(clk) then
+      tile_index <= lut(to_integer(home_cp));
+      if home > 0 then
+        lut(to_integer(home - 1)) <= index_save(0);
+      else
+        lut(11) <= index_save(0);
+      end if;
+    end if;
+  end process;
+
   spritemem : sprite
   port map (
     clk => clk,
