@@ -31,7 +31,7 @@ SCORE       LOAD    GR0,$fa
             CMP     GR0,#0A
             BGE     ONE
             STORE   GR0,$fa
-            JMP     GENR
+            JMP     START
 
 ONE_R       LOAD    GR0,$fb
             ADD     GR0,#01
@@ -122,12 +122,6 @@ SECOND      LOAD    GR1,$fe
             JMP     TIME
 FIRST       LOAD    GR1,$ff
             JMP     TIME
-RND         LOAD    GR1,$ed
+RND         STORE   GR3,$ed
+            LOAD    GR1,$ed
             JMP     TIME
-
-; ------- GENERATE RANDOM ----------
-GENR        STORE   GR3,$ed
-            LOAD    GR0,$ed
-            AND     GR0,#0F
-            STORE   GR0,$ed
-            JMP     START
