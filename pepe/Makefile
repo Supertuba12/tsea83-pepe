@@ -34,7 +34,7 @@ PART=xc6slx16-3-csg324
 
 
 pepe.%: S=pepe.vhd cpu.vhd uMem.vhd pMem.vhd vga.vhd ram.vhd sprite.vhd KBD_ENC.vhd highscoreMem.vhd
-#pepe.%: T=pepe.vhd
+pepe.%: T=pepe_tb.vhd
 pepe.%: U=Nexys3_Master.ucf
 
 cpu.%: S=cpu.vhd uMem.vhd pMem.vhd

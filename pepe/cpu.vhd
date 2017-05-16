@@ -56,7 +56,7 @@ architecture Behavioral of CPU is
   signal HELP_REG : unsigned(15 downto 0) := to_unsigned(0, 16);    -- Help register
   signal GR       : unsigned(15 downto 0) := to_unsigned(0, 16);   
   signal GR0      : unsigned(15 downto 0) := to_unsigned(0, 16);   
-  signal GR1      : unsigned(15 downto 0) := to_unsigned(0, 16);   
+  signal GR1      : unsigned(15 downto 0) := to_unsigned(1, 16);   
   signal GR2      : unsigned(15 downto 0) := to_unsigned(0, 16);   
   signal GR3      : unsigned(15 downto 0) := to_unsigned(0, 16);    -- millisecond clock
   -- IR parts
@@ -69,7 +69,7 @@ architecture Behavioral of CPU is
   signal N        : std_logic             := '0'; -- N = 1 if value @ AR < 0 else N = 0
   signal O        : std_logic             := '0'; -- O = 1 if operation in ALU caused overflow
   -- General signals
-  signal counter  : unsigned(16 downto 0) := to_unsigned(0, 17);   
+  signal counter  : unsigned(31 downto 0) := to_unsigned(0, 32);   
   signal KBD_en_pre : std_logic;
 
 
@@ -81,9 +81,9 @@ begin
   begin
     if rising_edge(clk) then
       counter <= counter + 1;
-      if counter = 100000 then
+      if counter = 1000000 then
         GR3 <= GR3 + 1;
-        counter <= to_unsigned(0, 17);
+        counter <= to_unsigned(0, 32);
       end if;
     end if;
   end process;
@@ -212,6 +212,8 @@ begin
         case GRX is
         when "00" =>
           GR0 <= DATA_BUS;
+        when "01" =>
+          GR1 <= DATA_BUS;
         when others =>
           null;
         end case;  
