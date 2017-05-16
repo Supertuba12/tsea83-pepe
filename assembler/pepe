@@ -1,0 +1,133 @@
+; GR3 := Klocka
+; $ee := Klocka framtid
+; GR2 := VGA_IN
+; GR1 := VGA_OUT
+;$ff - siffra 6
+;$fe - siffra 5
+;$fd - siffra 4
+;$fc - siffra 3
+;$fb - siffra 2
+;$fa - siffra 1
+;$ed - Slumptal
+
+START       STORE   GR3,$ee         ; -------------------------------
+            LOAD    GR0,$ee         ; Spara klockan till minne och
+            ADD     GR0,#0A         ; addera 10 till starttiden
+            STORE   GR0,$ee         ; -------------------------------
+
+MAIN        MOVE    0               ; PEPE RÖRA PÅ SIG
+
+            JMP     SEND            ; Skicka siffror till VGA-kretsen
+
+TIME        STORE   GR3,$ef         ; ------------------------------
+            LOAD    GR0,$ef         ; Kolla ifall highscore ska ökas
+            CMP     GR0,$ee         ; om inte hoppa tillbaka till
+            BGE     SCORE           ; MAIN
+            JMP     MAIN            ; ------------------------------
+
+; --------- ADD SCORE -------------
+SCORE       LOAD    GR0,$fa
+            ADD     GR0,#01
+            CMP     GR0,#0A
+            BGE     ONE
+            STORE   GR0,$fa
+            JMP     GENR
+
+ONE_R       LOAD    GR0,$fb
+            ADD     GR0,#01
+            CMP     GR0,#0A
+            BGE     TEN
+            STORE   GR0,$fb
+            JMP     START
+
+TEN_R       LOAD    GR0,$fc
+            ADD     GR0,#01
+            CMP     GR0,#0A
+            BGE     HUN
+            STORE   GR0,$fc
+            JMP     START
+
+HUN_R       LOAD    GR0,$fd
+            ADD     GR0,#01
+            CMP     GR0,#0A
+            BGE     THS
+            STORE   GR0,$fd
+            JMP     START
+
+THS_R       LOAD    GR0,$fe
+            ADD     GR0,#01
+            CMP     GR0,#0A
+            BGE     TES
+            STORE   GR0,$fe
+            JMP     START
+
+TES_R       LOAD    GR0,$ff
+            ADD     GR0,#01
+            CMP     GR0,#0A
+            BGE     HTS
+            STORE   GR0,$ff
+            JMP     START
+
+; --------- ZERO NUMBERS -----------------
+ONE         LOAD    GR0,#00
+            STORE   GR0,$fa
+            JMP     ONE_R
+
+TEN         LOAD    GR0,#00
+            STORE   GR0,$fb
+            JMP     TEN_R
+
+HUN         LOAD    GR0,#00
+            STORE   GR0,$fc
+            JMP     HUN_R
+
+THS         LOAD    GR0,#00
+            STORE   GR0,$fd
+            JMP     THS_R
+
+TES         LOAD    GR0,#00
+            STORE   GR0,$fe
+            JMP     TES_R
+
+HTS         LOAD    GR0,#00
+            STORE   GR0,$ff
+            JMP     START
+
+; ------------ SKICKA SIFFROR TILL VGA ------------
+SEND        STORE   GR2,$ea
+            LOAD    GR0,$ea
+            CMP     GR0,#06
+            BGE     SIXTH
+            CMP     GR0,#05
+            BGE     FIFTH
+            CMP     GR0,#04
+            BGE     FOURTH
+            CMP     GR0,#03
+            BGE     THIRD
+            CMP     GR0,#02
+            BGE     SECOND
+            CMP     GR0,#01
+            BGE     FIRST
+            JMP     RND
+
+SIXTH       LOAD    GR1,$fa
+            JMP     TIME
+FIFTH       LOAD    GR1,$fb
+            JMP     TIME
+FOURTH      LOAD    GR1,$fc
+            JMP     TIME
+THIRD       LOAD    GR1,$fd
+            JMP     TIME
+SECOND      LOAD    GR1,$fe
+            JMP     TIME
+FIRST       LOAD    GR1,$ff
+            JMP     TIME
+RND         LOAD    GR1,$ed
+            JMP     TIME
+
+; ------- GENERATE RANDOM ----------
+GENR        STORE   GR3,$ed
+            LOAD    GR0,$ed
+            AND     GR0,#0F
+            STORE   GR0,$ed
+            JMP     START

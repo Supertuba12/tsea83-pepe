@@ -8,16 +8,18 @@
 ;$fc - siffra 3
 ;$fb - siffra 2
 ;$fa - siffra 1
-        ADD     GR0,#10
+        STORE   GR3,$ee
+        LOAD    GR0,$ee
+        ADD     GR0,#0F
         STORE   GR0,$ee
-MAIN    MOVE    0
-        JMP     SEND
-TIME    CMP     GR3,$ee
-        BGE     SCORE
-        JMP     MAIN
+MAIN    MOVE    0               ; Rör PEPE
+        JMP     SEND            ; Hoppa SEND
+TIME    CMP     GR3,$ee         ; Jämför TID med $ee
+        JMP     SCORE           ; Om TID >= $ee -> SCORE
+        JMP     MAIN            ; LOOPA MAIN
 
 SCORE   LOAD    GR0,$ee
-        ADD     GR0,#10
+        ADD     GR0,#0F
         STORE   GR0,$ee
         LOAD    GR0,$fa
         ADD     GR0,#1
@@ -69,29 +71,29 @@ TNT     LOAD    GR0,#0
         STORE   GR0,$ff
         JMP     MAIN
 
-SEND    CMP     GR2,#6
-        BGE     SIXTH
+SEND    CMP     GR2,#6          ; OM Input >= 6
+        BGE     SIXTH           ; Hoppa 6
         CMP     GR2,#5
-        BGE     SIXTH
+        BGE     FIFTH
         CMP     GR2,#4
-        BGE     SIXTH
+        BGE     FOURTH
         CMP     GR2,#3
-        BGE     SIXTH
+        BGE     THIRD
         CMP     GR2,#2
-        BGE     SIXTH
+        BGE     SECOND
         CMP     GR2,#1
         BGE     FIRST
-        JMP     TIME
+        JMP     TIME            ; Hoppa tid
 
-FIRST   STORE   GR1,$fa
+FIRST   LOAD    GR1,$fa
         JMP     TIME
-SECOND  STORE   GR1,$fb
+SECOND  LOAD    GR1,$fb
         JMP     TIME
-THIRD   STORE   GR1,$fc
+THIRD   LOAD    GR1,$fc
         JMP     TIME
-FOURTH  STORE   GR1,$fd
+FOURTH  LOAD    GR1,$fd
         JMP     TIME
-FIFTH   STORE   GR1,$fe
+FIFTH   LOAD    GR1,$fe
         JMP     TIME
-SIXTH   STORE   GR1,$ff
+SIXTH   LOAD    GR1,$ff
         JMP     TIME
