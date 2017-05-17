@@ -5,6 +5,7 @@ use IEEE.NUMERIC_STD.all;
 -- pMem interface
 entity pMem is
   port(clk        : in std_logic;
+       rst        : in std_logic;
        pAddr      : in unsigned(8 downto 0); -- changed to 8 from 15
        pData_out  : out unsigned(15 downto 0);
        pData_in   : in unsigned(15 downto 0);

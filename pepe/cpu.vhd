@@ -25,6 +25,7 @@ architecture Behavioral of CPU is
   -- program Memory component
   component pMem
     port(clk        : in std_logic;
+         rst        : in std_logic;
          pAddr      : in unsigned(8 downto 0);
          pData_out  : out unsigned(15 downto 0);
          pData_in   : in unsigned(15 downto 0);
@@ -247,7 +248,7 @@ begin
   U0 : uMem port map(uAddr=>uPC, uData=>uM);
 
   -- program memory component connection
-  U1 : pMem port map(clk=>clk, pAddr=>ASR, pData_out=>PM, pData_in=>DATA_BUS, RW=>RW_s);
+  U1 : pMem port map(clk=>clk, rst=>rst, pAddr=>ASR, pData_out=>PM, pData_in=>DATA_BUS, RW=>RW_s);
 
   -- micro memory signal assignments
   uAddr_s <= uM(5 downto 0);

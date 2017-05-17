@@ -43,7 +43,7 @@ architecture Behavioral of VGA is
   signal  y_tile          : unsigned(6 downto 0)          := to_unsigned(0, 7);
   signal  y_tile_cp       : unsigned(6 downto 0)          := to_unsigned(0, 7);
   signal  tile_index      : unsigned(4 downto 0)          := to_unsigned(0, 5);
-  signal  time_clk        : unsigned(18 downto 0)          := (others => '0');                   -- When the screen should scroll
+  signal  time_clk        : unsigned(18 downto 0)         := (others => '0');       -- When the screen should scroll
   signal  game_enable     : std_logic                     := '0';                   -- Game only progress on rising_edge of time_clk
   signal  blank           : std_logic                     := '0';                   -- blanking signal
   signal  xtile           : unsigned(6 downto 0)          := to_unsigned(0, 7);
@@ -64,9 +64,8 @@ architecture Behavioral of VGA is
   signal  dead            : std_logic                     := '0';
   signal  tile_index_s    : unsigned(4 downto 0)          := to_unsigned(0, 5);
   signal  tile_index_d    : unsigned(4 downto 0)          := to_unsigned(0, 5);
-  signal  clk_top         : unsigned(18 downto 0)         := ("0000000000000011111");
-  signal  time_iterator   : unsigned(18 downto 0);
-  signal  index_save_four : unsigned(3 downto 0);
+  signal  clk_max         : unsigned(18 downto 0)         := (others => '1');
+  signal  clk_enable      : std_logic                     := '1';
 
   type lut_t is array (0 to 11) of unsigned(3 downto 0);
 
@@ -114,15 +113,7 @@ begin
   Clk25 <= '1' when (ClkDiv = 3) else '0';
 
   dead <= '1' when (Ypepe > 464) else '0';
-  process(clk)
-  begin
-    if index_save(4) /= index_save_four then
-      time_iterator <= time_iterator + 1;
-    end if;
-    index_save_four <= index_save(4);
-  end process;
   
-
   -- Xpixel incrementation at 60Hz
   process(clk)
   begin
@@ -184,10 +175,9 @@ begin
           start_y_p_cp <= start_y_p;
           Ypixel <= Ypixel + 1;
         else
-          if time_clk > clk_top then
+          time_clk <= time_clk + 1;
+          if time_clk > clk_max then
             time_clk <= (others => '0');
-          else
-            time_clk <= time_clk + time_iterator;
           end if;
           Ypixel <= Ypixel + 1;
           if Ypixel < 480 then
@@ -210,6 +200,22 @@ begin
     end if;
   end process;
 
+  process(clk) begin
+    if rst = '1' then
+      clk_max <= (others => '1');
+      clk_enable <= '1';
+    elsif rising_edge(clk) then
+      if index_save(6) = to_unsigned(1, 4) then
+        if clk_enable = '1' then
+          clk_max <= clk_max - index_save(6);
+          clk_enable <= '0';
+        end if;
+      else
+        clk_enable <= '1';
+      end if;
+    end if;
+  end process;
+
 -- Home pointer handler
   process(clk)
   begin
@@ -219,7 +225,7 @@ begin
       y_tile <= (others => '0');
       start_y_p <= (others => '0');
     elsif rising_edge(clk) then
-      if time_clk > clk_top then
+      if time_clk = clk_max then
         if game_enable = '0' then
           game_enable <= '1';
           if start_y_p = 1 then
