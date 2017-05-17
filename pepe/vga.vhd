@@ -42,8 +42,8 @@ architecture Behavioral of VGA is
   signal  start_y_p_cp    : unsigned(2 downto 0)          := to_unsigned(0, 3);
   signal  y_tile          : unsigned(6 downto 0)          := to_unsigned(0, 7);
   signal  y_tile_cp       : unsigned(6 downto 0)          := to_unsigned(0, 7);
-  signal  tile_index      : unsigned(3 downto 0)          := to_unsigned(0, 4);
-  signal  time_clk        : unsigned(0 downto 0)          := "0";                   -- When the screen should scroll
+  signal  tile_index      : unsigned(4 downto 0)          := to_unsigned(0, 5);
+  signal  time_clk        : unsigned(18 downto 0)          := (others => '0');                   -- When the screen should scroll
   signal  game_enable     : std_logic                     := '0';                   -- Game only progress on rising_edge of time_clk
   signal  blank           : std_logic                     := '0';                   -- blanking signal
   signal  xtile           : unsigned(6 downto 0)          := to_unsigned(0, 7);
@@ -53,7 +53,7 @@ architecture Behavioral of VGA is
   signal  y_out           : unsigned(9 downto 0)          := to_unsigned(0, 10);
   signal  Xpepe           : unsigned(9 downto 0)          := "0110101000";
   signal  Ypepe           : unsigned(9 downto 0)          := "0111000000";
-  signal  counter         : unsigned(20 downto 0)         := to_unsigned(0, 21);
+  signal  counter         : unsigned(19 downto 0)         := to_unsigned(0, 20);
   signal  index_h         : unsigned(4 downto 0)          := to_unsigned(0, 5);
   signal  coll            : std_logic                     := '0';
   signal  done            : std_logic                     := '0';
@@ -61,11 +61,17 @@ architecture Behavioral of VGA is
   signal  score_out_s     : unsigned(15 downto 0)         := to_unsigned(0, 16);
   signal  score_num_id    : unsigned(15 downto 0)         := to_unsigned(0, 16);
   signal  rng             : unsigned(3 downto 0);
-  
+  signal  dead            : std_logic                     := '0';
+  signal  tile_index_s    : unsigned(4 downto 0)          := to_unsigned(0, 5);
+  signal  tile_index_d    : unsigned(4 downto 0)          := to_unsigned(0, 5);
+  signal  clk_top         : unsigned(18 downto 0)         := ("0000000000000011111");
+  signal  time_iterator   : unsigned(18 downto 0);
+  signal  index_save_four : unsigned(3 downto 0);
+
   type lut_t is array (0 to 11) of unsigned(3 downto 0);
-  
+
   constant lut_c : lut_t :=
-  ("0000","0000","0000","0000","0000","0000","0111","1000","1001","1010","1011","0000");
+  ("0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000");
 
   signal lut : lut_t := lut_c;
   signal index_save : lut_t := lut_c;
@@ -107,11 +113,20 @@ begin
   -- 25 MHz clock (one system clock pulse width)
   Clk25 <= '1' when (ClkDiv = 3) else '0';
 
+  dead <= '1' when (Ypepe > 464) else '0';
+  process(clk)
+  begin
+    if index_save(4) /= index_save_four then
+      time_iterator <= time_iterator + 1;
+    end if;
+    index_save_four <= index_save(4);
+  end process;
+  
+
   -- Xpixel incrementation at 60Hz
   process(clk)
   begin
   if rst = '1' then
-    Xpixel <= (others => '0');
     xtile <= (others => '0');
   elsif rising_edge(clk) then
     if Clk25 = '1' then
@@ -138,10 +153,8 @@ begin
   process(clk)
   begin
     if rst = '1' then
-      Ypixel <= (others => '0');
       rng <= (others => '0');
       index_save <= lut_c;
-      time_clk <= (others => '0');
       home_cp <= (others => '0');
       start_y_p_cp <= (others => '0');
       y_tile_cp <= (others => '0');
@@ -156,20 +169,26 @@ begin
           score_out <= to_unsigned(0, 16);
           score_out_s <= to_unsigned(0, 16);
         end if;
-        index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
+        if dead = '0' then
+          index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
+        end if;
         rng <= rng + index_save(0);
         if score_out_s = 6 then
           rng <= rng + score_in(3 downto 0);
         end if;
         if Ypixel = 520 then
           Ypixel <= (others => '0');
-          time_clk <= time_clk + 1;
         elsif Ypixel = 480 then
           home_cp <= home;
           y_tile_cp <= y_tile;
           start_y_p_cp <= start_y_p;
           Ypixel <= Ypixel + 1;
         else
+          if time_clk > clk_top then
+            time_clk <= (others => '0');
+          else
+            time_clk <= time_clk + time_iterator;
+          end if;
           Ypixel <= Ypixel + 1;
           if Ypixel < 480 then
             start_y_p_cp <= start_y_p_cp + 1;
@@ -200,7 +219,7 @@ begin
       y_tile <= (others => '0');
       start_y_p <= (others => '0');
     elsif rising_edge(clk) then
-      if time_clk = 1 then
+      if time_clk > clk_top then
         if game_enable = '0' then
           game_enable <= '1';
           if start_y_p = 1 then
@@ -228,8 +247,10 @@ begin
 
   -- Video blanking signal
   blank <= '1' when ((Xpixel > 639 and Xpixel <= 799) or (Ypixel > 479 and Ypixel <= 520)) else '0';
-
-  y_p <= y_tile_cp;
+  y_p <=
+    y_tile_cp                                                         when (dead = '0' or (Ypixel <= 192 or Ypixel >= 288)) else
+    "000" & to_unsigned(to_integer(Ypixel - 193), 7)(6 downto 3)      when (dead = '1' and Ypixel > 192 and Ypixel < 241)   else
+    "000" & to_unsigned(to_integer(Ypixel - 241), 7) (6 downto 3)     when (dead = '1' and Ypixel > 240 and Ypixel < 288);
   x_p <= xtile;
   x_out <= Xpixel - Xpepe;
   y_out <= Ypixel - Ypepe;
@@ -237,15 +258,16 @@ begin
   y_h <= Ypixel(6 downto 0);
   score_num_id <= to_unsigned(0, 11) & (Xpixel(8 downto 4) - 8);
   index_h <= (Xpixel(8 downto 4) + 10) when (Xpixel < 144) else ("0" & index_save(to_integer(score_num_id)));
+  tile_index <= tile_index_s when (dead = '0') else tile_index_d;
 
   process(clk)
   begin
     if rst = '1' then
-      tile_index <= (others => '0');
+      tile_index_s <= (others => '0');
       home_pre <= (others => '0');
       lut <= lut_c;
     elsif rising_edge(clk) then
-      tile_index <= lut(to_integer(home_cp));
+      tile_index_s <= "0" & lut(to_integer(home_cp));
       if home /= home_pre then
         home_pre <= home;
         if home > 0 then
@@ -271,7 +293,7 @@ begin
     y => y_p,
     t_pepe => tile_index,
     data_out => data);
-  
+
   highscore : highscoreMem
   port map (
     clk=> clk,
@@ -284,70 +306,98 @@ begin
   process(clk)
   begin
     if rst = '1' then
-      Xpepe <= (others => '0');
-      Ypepe <= (others => '0');
+      Xpepe <= "0110101000";
+      Ypepe <= "0111000000";
       tilePixel <= (others => '0');
     elsif rising_edge(clk) then
-      if counter = 0 then
-        if move_pepe_in = "010" and Xpepe < "1001011111" then
-            Xpepe <= Xpepe + 1;
-        elsif move_pepe_in = "001" and Xpepe > "0011110000" then
-            Xpepe <= Xpepe - 1;
-        elsif move_pepe_in = "011" and Ypepe <  "0111000000" then
-            Ypepe <= Ypepe + 1;
-        elsif move_pepe_in = "100" and Ypepe > "0000000000" then
-            Ypepe <= Ypepe - 1;
+      if dead = '0' then
+        if counter = 0 then
+          if move_pepe_in = "010" and Xpepe < "1001011111" then
+              Xpepe <= Xpepe + 1;
+          elsif move_pepe_in = "001" and Xpepe > "0011110000" then
+              Xpepe <= Xpepe - 1;
+          elsif move_pepe_in = "011" and Ypepe <  "0111000000" then
+              Ypepe <= Ypepe + 1;
+          elsif move_pepe_in = "100" and Ypepe > "0000000000" then
+              Ypepe <= Ypepe - 1;
+          end if;
         end if;
-      end if;
-      if (blank = '0') then
-        if (Xpixel < 240 and Ypixel < 16) then
-          -- Highscore område
-          tilePixel <= highScore_data;
-        elsif (Xpixel > 239) then
-          -- Spelplan
-          if (Xpixel >= Xpepe and Xpixel < Xpepe + 32) and (Ypixel >= Ypepe and Ypixel < Ypepe + 32) then
-            if sprite_data = "00000000" then
-              tilePixel <= data;
-            elsif data = "00000000" then
-              tilePixel <= sprite_data;
-            else
-              if (Ypixel - Ypepe) = 17 then
-                case move_pepe_in is
-                  when "010" => Xpepe <= Xpepe - 1;
-                  when "001" => Xpepe <= Xpepe + 1;
-                  when others => Ypepe <= Ypepe + 1;
-                end case;
-              elsif (Ypixel - Ypepe) < 17 then
-                if Ypixel - Ypepe < 13 and Ypixel - Ypepe > 5 then
+        if (blank = '0') then
+          if (Xpixel < 240 and Ypixel < 16) then
+            -- Highscore område
+            tilePixel <= highScore_data;
+          elsif (Xpixel > 239) then
+            -- Spelplan
+            if (Xpixel >= Xpepe and Xpixel < Xpepe + 32) and (Ypixel >= Ypepe and Ypixel < Ypepe + 32) then
+              if sprite_data = "00000000" then
+                tilePixel <= data;
+              elsif data = "00000000" then
+                tilePixel <= sprite_data;
+              else
+                if (Ypixel - Ypepe) = 17 then
                   case move_pepe_in is
                     when "010" => Xpepe <= Xpepe - 1;
                     when "001" => Xpepe <= Xpepe + 1;
-                    when others => null;
-                  end case;                
+                    when others => Ypepe <= Ypepe + 1;
+                  end case;
+                elsif (Ypixel - Ypepe) < 17 then
+                  if Ypixel - Ypepe < 13 and Ypixel - Ypepe > 5 then
+                    case move_pepe_in is
+                      when "010" => Xpepe <= Xpepe - 1;
+                      when "001" => Xpepe <= Xpepe + 1;
+                      when others => null;
+                    end case;
+                  else
+                    Ypepe <= Ypepe + 1;
+                    if (Xpixel - Xpepe < 13) then
+                      Xpepe <= Xpepe + 1;
+                    elsif (Xpixel - Xpepe > 18) then
+                      Xpepe <= Xpepe - 1;
+                    end if;
+                  end if;
                 else
-                  Ypepe <= Ypepe + 1;
-                  if (Xpixel - Xpepe < 13) then
+                  if Xpixel - Xpepe < 13 then
                     Xpepe <= Xpepe + 1;
-                  elsif (Xpixel - Xpepe > 18) then
+                  elsif Xpixel - Xpepe > 18 then
                     Xpepe <= Xpepe - 1;
+                  else
+                    Ypepe <= Ypepe - 1;
                   end if;
                 end if;
-              else
-                if Xpixel - Xpepe < 13 then
-                  Xpepe <= Xpepe + 1;
-                elsif Xpixel - Xpepe > 18 then
-                  Xpepe <= Xpepe - 1;
-                else
-                  Ypepe <= Ypepe - 1;
-                end if;
               end if;
+            else
+              tilePixel <= data;
+            end if;
+          end if;
+        else
+          tilePixel <= (others => '0');
+        end if;
+      elsif dead = '1' then
+        if (blank = '0') then
+          if (Xpixel < 240 and Ypixel < 16) then
+            -- Highscore område
+            tilePixel <= highScore_data;
+          elsif (Xpixel > 239) then
+            if (Xpixel >= Xpepe and Xpixel < Xpepe + 32) and (Ypixel >= Ypepe and Ypixel < Ypepe + 32) then
+              if sprite_data = "00000000" then
+                tilePixel <= data;
+              elsif data = "00000000" then
+                tilePixel <= sprite_data;
+              end if;
+            elsif Ypixel > 192 and Ypixel < 241 then -- GAME
+              tile_index_d <= to_unsigned(16, 5);
+              tilePixel <= data;
+            elsif  Ypixel > 240 and  Ypixel < 288 then -- OVER
+              tile_index_d <= to_unsigned(17, 5);
+              tilePixel <= data;
+            else
+              tile_index_d <= "0" & lut(to_integer(home_cp));
+              tilePixel <= data;
             end if;
           else
-            tilePixel <= data;
+            tilePixel <= (others => '0');
           end if;
         end if;
-      else
-        tilePixel <= (others => '0');
       end if;
     end if;
   end process;
