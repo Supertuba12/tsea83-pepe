@@ -5,10 +5,10 @@ import openpyxl
 from openpyxl import load_workbook
 
 xlsx_file = sys.argv[1]
-with open("score_blocks", "w+") as fd:
+with open("blocks", "w+") as fd:
     ws = load_workbook(filename=xlsx_file).active
     i = 0
-    cell_range = ws['A1':'AX96']
+    cell_range = ws['A1':'AX108']
     for col in cell_range:
         for cell in col:
             i += 1
