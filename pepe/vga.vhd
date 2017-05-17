@@ -134,19 +134,16 @@ begin
     if rising_edge(clk) then
       if Clk25 = '1' and Xpixel = 799 then
         if Ypixel(3 downto 0) < 7 then
-          score_out <= to_unsigned(0, 12) & Ypixel(3 downto 0);
-          score_out_s <= to_unsigned(0, 12) & Ypixel(3 downto 0);
-        else
-          score_out <= to_unsigned(0, 16);
-          score_out_s <= to_unsigned(0, 16);
-        end if;
-        if score_out_s = 0 then
-          if index_save(to_integer(score_out_s)) /= score_in(3 downto 0) then
+          if Ypixel(3 downto 0) = 0 then
+            score_out <= to_unsigned(1, 16);
+            score_out_s <= to_unsigned(1, 16)
+            index_save(0) <= score_in(3 downto 0);
+          else
+            score_out <= to_unsigned(0, 12) & Ypixel(3 downto 0);
+            score_out_s <= to_unsigned(0, 12) & Ypixel(3 downto 0);
             index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
           end if;
-        else
-          index_save(to_integer(score_out_s)) <= score_in(3 downto 0);
-        end if;
+        end if;    
         if Ypixel = 520 then
           Ypixel <= (others => '0');
           time_clk <= time_clk + 1;
