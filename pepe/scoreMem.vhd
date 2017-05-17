@@ -324,7 +324,7 @@ x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"0
 
 begin  -- scoreMem
   index <= (to_integer(tileIndex*256) + (y*16) + x); -- to_int may not be needed
-  data_out <= scoreMem(to_integer(index));
+  data_out <= scoreMem(to_integer(index)) when (index >= 0 and index <= 4967) else "00000000";
 
 end Behavioral;
  

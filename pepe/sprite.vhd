@@ -53,7 +53,9 @@ begin
   process(clk)
   begin
     if rising_edge(clk) then
-      data_out_sprite <= spriteMem(to_integer(index));
+      if index >= 0 and index <= 1023 then
+        data_out_sprite <= spriteMem(to_integer(index));
+      end if;
     end if;
   end process;
 

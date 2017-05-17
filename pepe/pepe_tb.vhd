@@ -11,7 +11,7 @@ ARCHITECTURE behavior OF pepe_tb IS
 
   -- Component Declaration
   COMPONENT pepe
-     port (clk               : in std_logic;                         -- system clock
+     port (clk              : in std_logic;                         -- system clock
           rst               : in std_logic;                         -- reset
           Hsync             : out std_logic;                        -- horizontal sync
           Vsync             : out std_logic;                        -- vertical sync
@@ -25,13 +25,13 @@ ARCHITECTURE behavior OF pepe_tb IS
   signal clk          : std_logic := '0';
   signal rst          : std_logic := '0';
   signal tb_running   : boolean := true;
-  signal Hsync        : std_logic;
-  signal Vsync        : std_logic;
-  signal vgaRed       : std_logic_vector(2 downto 0);
-  signal vgaGreen     : std_logic_vector(2 downto 0);
-  signal vgaBlue      : std_logic_vector(2 downto 1);
-  signal PS2KeyboardClk : std_logic;
-  signal PS2KeyboardData : std_logic;
+  signal Hsync        : std_logic := '0';
+  signal Vsync        : std_logic := '0';
+  signal vgaRed       : std_logic_vector(2 downto 0) := "010";
+  signal vgaGreen     : std_logic_vector(2 downto 0) := "010";
+  signal vgaBlue      : std_logic_vector(2 downto 1) := "01";
+  signal PS2KeyboardClk : std_logic := '1';
+  signal PS2KeyboardData : std_logic := '1';
 BEGIN
 
   -- Component Instantiation
@@ -51,9 +51,9 @@ BEGIN
   begin
     while tb_running loop
       clk <= '0';
-      wait for 5 ns;
+      wait for 1 ns;
       clk <= '1';
-      wait for 5 ns;
+      wait for 1 ns;
     end loop;
     wait;
   end process;

@@ -132,7 +132,9 @@ begin
   process(clk)
   begin
     if rising_edge(clk) then
-      data_out <= ram(to_integer(index));
+      if index >= 0 and index < 4800 then
+        data_out <= ram(to_integer(index));
+      end if;
     end if;
   end process;
 
