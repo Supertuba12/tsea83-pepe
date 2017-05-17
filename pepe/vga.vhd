@@ -1,7 +1,6 @@
 --------------------------------------------------------------------------------
 -- vga
 -- MAJOR WIP
-
 -- library declaration
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;            -- basic IEEE library
@@ -64,13 +63,12 @@ architecture Behavioral of VGA is
   signal  rng             : unsigned(3 downto 0);
   
   type lut_t is array (0 to 11) of unsigned(3 downto 0);
-  type lut_ta is array (0 to 11) of unsigned(3 downto 0); 
   
-  signal lut : lut_t :=
-  ("0001","0010","0011","0100","0101","0110","0111","1000","1001","1010","1011","0000");
-  
-  signal index_save : lut_ta :=
-  ("0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000");
+  constant lut_c : lut_t :=
+  ("0000","0000","0000","0000","0000","0000","0111","1000","1001","1010","1011","0000");
+
+  signal lut : lut_t := lut_c;
+  signal index_save : lut_t := lut_c;
 
   component ram
     port (clk       : in std_logic;
@@ -99,7 +97,9 @@ begin
   -- Divide system clock (100 MHz) by 4
   process(clk)
   begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      ClkDiv <= (others => '0');
+    elsif rising_edge(clk) then
       ClkDiv <= ClkDiv + 1;
     end if;
   end process;
@@ -110,7 +110,10 @@ begin
   -- Xpixel incrementation at 60Hz
   process(clk)
   begin
-  if rising_edge(clk) then
+  if rst = '1' then
+    Xpixel <= (others => '0');
+    xtile <= (others => '0');
+  elsif rising_edge(clk) then
     if Clk25 = '1' then
       if Xpixel = 799 then    -- vi har nÃ¥tt slutet av pixelantalet
         Xpixel <= (others => '0');
@@ -134,7 +137,17 @@ begin
   -- Ypixel incrementation at 60Hz
   process(clk)
   begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      Ypixel <= (others => '0');
+      rng <= (others => '0');
+      index_save <= lut_c;
+      time_clk <= (others => '0');
+      home_cp <= (others => '0');
+      start_y_p_cp <= (others => '0');
+      y_tile_cp <= (others => '0');
+      score_out <= (others => '0');
+      score_out_s <= (others => '0');
+    elsif rising_edge(clk) then
       if Clk25 = '1' and Xpixel = 799 then
         if Ypixel(3 downto 0) < 7 then
           score_out <= to_unsigned(0, 12) & Ypixel(3 downto 0);
@@ -181,7 +194,12 @@ begin
 -- Home pointer handler
   process(clk)
   begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      game_enable <= '0';
+      home <= (others => '0');
+      y_tile <= (others => '0');
+      start_y_p <= (others => '0');
+    elsif rising_edge(clk) then
       if time_clk = 1 then
         if game_enable = '0' then
           game_enable <= '1';
@@ -222,7 +240,11 @@ begin
 
   process(clk)
   begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      tile_index <= (others => '0');
+      home_pre <= (others => '0');
+      lut <= lut_c;
+    elsif rising_edge(clk) then
       tile_index <= lut(to_integer(home_cp));
       if home /= home_pre then
         home_pre <= home;
@@ -261,7 +283,11 @@ begin
   -- Tile memory
   process(clk)
   begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      Xpepe <= (others => '0');
+      Ypepe <= (others => '0');
+      tilePixel <= (others => '0');
+    elsif rising_edge(clk) then
       if counter = 0 then
         if move_pepe_in = "010" and Xpepe < "1001011111" then
             Xpepe <= Xpepe + 1;
@@ -326,9 +352,11 @@ begin
     end if;
   end process;
 
-    process(clk)
+  process(clk)
   begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      counter <= (others => '0');
+    elsif rising_edge(clk) then
       counter <= counter + 1;
     end if;
   end process;

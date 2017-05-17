@@ -72,18 +72,20 @@ architecture Behavioral of CPU is
   signal counter  : unsigned(31 downto 0) := to_unsigned(0, 32);   
   signal KBD_en_pre : std_logic;
 
-
 begin
   GR2 <= vga_in;
   vga_out <= GR1;
   -- real time counter
   process(clk)
   begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      counter <= (others => '0');
+      GR3 <= (others => '0');
+    elsif rising_edge(clk) then
       counter <= counter + 1;
       if counter = 1000000 then
         GR3 <= GR3 + 1;
-        counter <= to_unsigned(0, 32);
+        counter <= (others => '0');
       end if;
     end if;
   end process;
@@ -207,7 +209,8 @@ begin
   begin
     if rising_edge(clk) then
       if rst = '1' then
-        -- first reset grx to something then say gr = grx
+        GR1 <= (others => '0');
+        GR0 <= (others => '0');
       elsif FB = "110" then
         case GRX is
         when "00" =>

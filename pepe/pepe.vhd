@@ -10,8 +10,8 @@ entity pepe is
         vgaRed            : out	std_logic_vector(2 downto 0);     -- VGA red
         vgaGreen          : out std_logic_vector(2 downto 0);     -- VGA green
         vgaBlue           : out std_logic_vector(2 downto 1);     -- VGA blue
-        PS2KeyboardClk	  : in std_logic;                         -- PS2 clock
-	      PS2KeyboardData   : in std_logic);                        -- PS2 data
+        PS2KeyboardClk    : in std_logic;                         -- PS2 clock
+        PS2KeyboardData   : in std_logic);                        -- PS2 data
 end pepe;
 
 architecture Behavioral of pepe is
@@ -36,17 +36,17 @@ architecture Behavioral of pepe is
   end component;
 
   component CPU
-    port(clk          : in std_logic;
-         rst          : in std_logic;
-         movement_in  : in unsigned(2 downto 0);
-         rnd_out       : out unsigned(3 downto 0);
-         move_pepe    : out unsigned(2 downto 0);
+    port(clk              : in std_logic;
+         rst              : in std_logic;
+         movement_in      : in unsigned(2 downto 0);
+         rnd_out          : out unsigned(3 downto 0);
+         move_pepe        : out unsigned(2 downto 0);
          vga_in           : in unsigned(15 downto 0);
          vga_out          : out unsigned(15 downto 0));
   end component;
   
   component KBD_ENC 
-    port(clk	            : in std_logic;
+    port(clk              : in std_logic;
          PS2KeyboardClk   : in std_logic;
          PS2KeyboardData  : in std_logic;
          movement         : out unsigned(2 downto 0));

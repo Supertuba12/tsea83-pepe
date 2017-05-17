@@ -16,7 +16,7 @@ architecture Behavioral of pMem is
 
 -- program Memory
 type p_mem_t is array (0 to 511) of unsigned(15 downto 0);
-signal p_mem : p_mem_t :=
+constant p_mem_c : p_mem_t :=
   (
 x"1cee",
 x"00ee",
@@ -139,10 +139,13 @@ x"1ced",
 x"04ed",
 x"6007",
 others => x"0000");
+  signal p_mem : p_mem_t := p_mem_c;
 
 begin  -- pMem
   process(clk) begin
-    if rising_edge(clk) then
+    if rst = '1' then
+      p_mem <= p_mem_c;
+    elsif rising_edge(clk) then
       if RW = '1' then
         p_mem(to_integer(pAddr)) <= pData_in;
       end if;
