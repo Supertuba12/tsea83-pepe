@@ -15,7 +15,6 @@ entity VGA is
     vgaBlue           : out std_logic_vector(2 downto 1);
     Hsync             : out std_logic;
     Vsync             : out std_logic;
-    rnd_in            : in unsigned(3 downto 0);
     move_pepe_in      : in unsigned(2 downto 0);
     score_in          : in unsigned(15 downto 0);
     score_out         : out unsigned(15 downto 0)
@@ -35,7 +34,7 @@ architecture Behavioral of VGA is
   signal  y_p             : unsigned(6 downto 0)          := to_unsigned(0, 7);
   signal  x_h             : unsigned(6 downto 0)          := to_unsigned(0, 7);     -- x for highscore
   signal  y_h             : unsigned(6 downto 0)          := to_unsigned(0, 7);     -- y for highscore
-  signal  tilePixel       : std_logic_vector(7 downto 0) := "00000000";             -- Tile pixel data
+  signal  tilePixel       : std_logic_vector(7 downto 0)  := "00000000";             -- Tile pixel data
   signal  home            : unsigned(3 downto 0)          := to_unsigned(0, 4);     -- Home points at Y in array (0-71)
   signal  home_cp         : unsigned(3 downto 0)          := to_unsigned(0, 4);
   signal  start_y_p       : unsigned(2 downto 0)          := to_unsigned(0, 3);
@@ -43,7 +42,7 @@ architecture Behavioral of VGA is
   signal  y_tile          : unsigned(6 downto 0)          := to_unsigned(0, 7);
   signal  y_tile_cp       : unsigned(6 downto 0)          := to_unsigned(0, 7);
   signal  tile_index      : unsigned(4 downto 0)          := to_unsigned(0, 5);
-  signal  time_clk        : unsigned(18 downto 0)         := (others => '0');       -- When the screen should scroll
+  signal  time_clk        : unsigned(0 downto 0)          := (others => '0');       -- When the screen should scroll
   signal  game_enable     : std_logic                     := '0';                   -- Game only progress on rising_edge of time_clk
   signal  blank           : std_logic                     := '0';                   -- blanking signal
   signal  xtile           : unsigned(6 downto 0)          := to_unsigned(0, 7);
@@ -60,17 +59,14 @@ architecture Behavioral of VGA is
   signal  home_pre        : unsigned(3 downto 0)          := to_unsigned(0, 4);
   signal  score_out_s     : unsigned(15 downto 0)         := to_unsigned(0, 16);
   signal  score_num_id    : unsigned(15 downto 0)         := to_unsigned(0, 16);
-  signal  rng             : unsigned(3 downto 0);
+  signal  rng             : unsigned(3 downto 0)          := (others => '0');
   signal  dead            : std_logic                     := '0';
   signal  tile_index_s    : unsigned(4 downto 0)          := to_unsigned(0, 5);
   signal  tile_index_d    : unsigned(4 downto 0)          := to_unsigned(0, 5);
-  signal  clk_max         : unsigned(18 downto 0)         := (others => '1');
-  signal  clk_enable      : std_logic                     := '1';
 
   type lut_t is array (0 to 11) of unsigned(3 downto 0);
 
-  constant lut_c : lut_t :=
-  ("0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000","0000");
+  constant lut_c : lut_t := (others => "0000");
 
   signal lut : lut_t := lut_c;
   signal index_save : lut_t := lut_c;
@@ -100,12 +96,13 @@ architecture Behavioral of VGA is
 begin
   -- Clock divisor
   -- Divide system clock (100 MHz) by 4
-  process(clk)
-  begin
-    if rst = '1' then
-      ClkDiv <= (others => '0');
-    elsif rising_edge(clk) then
-      ClkDiv <= ClkDiv + 1;
+  process(clk) begin
+    if rising_edge(clk) then
+      if rst = '1' then
+        ClkDiv <= (others => '0');
+      else
+        ClkDiv <= ClkDiv + 1;
+      end if;
     end if;
   end process;
 
@@ -115,44 +112,42 @@ begin
   dead <= '1' when (Ypepe > 464) else '0';
   
   -- Xpixel incrementation at 60Hz
-  process(clk)
-  begin
-  if rst = '1' then
-    xtile <= (others => '0');
-  elsif rising_edge(clk) then
-    if Clk25 = '1' then
-      if Xpixel = 799 then    -- vi har nÃ¥tt slutet av pixelantalet
-        Xpixel <= (others => '0');
-      else
-        Xpixel <= Xpixel + 1;
-      end if;
-      if Xpixel > 247 and Xpixel < 640 then
-        if Xpixel(2 downto 0) = 0 then
-          xtile <= xtile + 1;
-        end if;
-      else
+  process(clk) begin
+    if rising_edge(clk) then
+      if rst = '1' then
         xtile <= (others => '0');
+      elsif Clk25 = '1' then
+        if Xpixel = 799 then    -- vi har nÃ¥tt slutet av pixelantalet
+          Xpixel <= (others => '0');
+        else
+          Xpixel <= Xpixel + 1;
+        end if;
+        if Xpixel > 247 and Xpixel < 640 then
+          if Xpixel(2 downto 0) = 0 then
+            xtile <= xtile + 1;
+          end if;
+        else
+          xtile <= (others => '0');
+        end if;
       end if;
     end if;
-  end if;
   end process;
 
   -- Horizontal sync
   Hsync <= '0' when ((Xpixel > 655) and (Xpixel <= 751)) else '1'; 
 
   -- Ypixel incrementation at 60Hz
-  process(clk)
-  begin
-    if rst = '1' then
-      rng <= (others => '0');
-      index_save <= lut_c;
-      home_cp <= (others => '0');
-      start_y_p_cp <= (others => '0');
-      y_tile_cp <= (others => '0');
-      score_out <= (others => '0');
-      score_out_s <= (others => '0');
-    elsif rising_edge(clk) then
-      if Clk25 = '1' and Xpixel = 799 then
+  process(clk) begin
+    if rising_edge(clk) then
+      if rst = '1' then
+        rng <= (others => '0');
+        index_save <= lut_c;
+        home_cp <= (others => '0');
+        start_y_p_cp <= (others => '0');
+        y_tile_cp <= (others => '0');
+        score_out <= (others => '0');
+        score_out_s <= (others => '0');
+      elsif Clk25 = '1' and Xpixel = 799 then
         if Ypixel(3 downto 0) < 7 then
           score_out <= to_unsigned(0, 12) & Ypixel(3 downto 0);
           score_out_s <= to_unsigned(0, 12) & Ypixel(3 downto 0);
@@ -167,6 +162,9 @@ begin
         if score_out_s = 6 then
           rng <= rng + score_in(3 downto 0);
         end if;
+        if Ypixel(6 downto 6) = 1 and Ypixel(5 downto 0) = 0 then
+          time_clk <= time_clk + 1;
+        end if;
         if Ypixel = 520 then
           Ypixel <= (others => '0');
         elsif Ypixel = 480 then
@@ -175,10 +173,6 @@ begin
           start_y_p_cp <= start_y_p;
           Ypixel <= Ypixel + 1;
         else
-          time_clk <= time_clk + 1;
-          if time_clk > clk_max then
-            time_clk <= (others => '0');
-          end if;
           Ypixel <= Ypixel + 1;
           if Ypixel < 480 then
             start_y_p_cp <= start_y_p_cp + 1;
@@ -200,32 +194,15 @@ begin
     end if;
   end process;
 
-  process(clk) begin
-    if rst = '1' then
-      clk_max <= (others => '1');
-      clk_enable <= '1';
-    elsif rising_edge(clk) then
-      if index_save(6) = to_unsigned(1, 4) then
-        if clk_enable = '1' then
-          clk_max <= clk_max - index_save(6);
-          clk_enable <= '0';
-        end if;
-      else
-        clk_enable <= '1';
-      end if;
-    end if;
-  end process;
-
 -- Home pointer handler
-  process(clk)
-  begin
-    if rst = '1' then
-      game_enable <= '0';
-      home <= (others => '0');
-      y_tile <= (others => '0');
-      start_y_p <= (others => '0');
-    elsif rising_edge(clk) then
-      if time_clk = clk_max then
+  process(clk) begin
+    if rising_edge(clk) then
+      if rst = '1' then
+        game_enable <= '0';
+        home <= (others => '0');
+        y_tile <= (others => '0');
+        start_y_p <= (others => '0');
+      elsif time_clk = 1 then
         if game_enable = '0' then
           game_enable <= '1';
           if start_y_p = 1 then
@@ -266,20 +243,19 @@ begin
   index_h <= (Xpixel(8 downto 4) + 10) when (Xpixel < 144) else ("0" & index_save(to_integer(score_num_id)));
   tile_index <= tile_index_s when (dead = '0') else tile_index_d;
 
-  process(clk)
-  begin
-    if rst = '1' then
-      tile_index_s <= (others => '0');
-      home_pre <= (others => '0');
-      lut <= lut_c;
-    elsif rising_edge(clk) then
-      tile_index_s <= "0" & lut(to_integer(home_cp));
-      if home /= home_pre then
-        home_pre <= home;
-        if home > 0 then
-          lut(to_integer(home) - 1) <= rng;
-        else
-          lut(11) <= rng;
+  process(clk) begin
+    if rising_edge(clk) then
+      if rst = '1' then
+        tile_index_s <= (others => '0');
+        home_pre <= (others => '0');
+        lut <= lut_c;
+      else
+        tile_index_s <= "0" & lut(to_integer(home_cp));
+        if home /= home_pre then
+          home_pre <= home;
+          if home(0 downto 0) = 1 then
+            lut(to_integer(home) - 1) <= rng;
+          end if;
         end if;
       end if;
     end if;
@@ -309,14 +285,12 @@ begin
     data_out => highScore_data);
 
   -- Tile memory
-  process(clk)
-  begin
-    if rst = '1' then
-      Xpepe <= "0110101000";
-      Ypepe <= "0111000000";
-      tilePixel <= (others => '0');
-    elsif rising_edge(clk) then
-      if dead = '0' then
+  process(clk) begin
+    if rising_edge(clk) then
+      if rst = '1' then
+        Xpepe <= "0110101000";
+        Ypepe <= "0111000000";
+      elsif dead = '0' then
         if counter = 0 then
           if move_pepe_in = "010" and Xpepe < "1001011111" then
               Xpepe <= Xpepe + 1;
@@ -408,11 +382,8 @@ begin
     end if;
   end process;
 
-  process(clk)
-  begin
-    if rst = '1' then
-      counter <= (others => '0');
-    elsif rising_edge(clk) then
+  process(clk) begin
+    if rising_edge(clk) then
       counter <= counter + 1;
     end if;
   end process;

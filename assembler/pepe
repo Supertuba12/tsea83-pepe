@@ -9,7 +9,16 @@
 ;$fb - siffra 2
 ;$fa - siffra 1
 ;$ed - Slumptal
-
+            LOAD    GR0,#0
+            STORE   GR0,$fa
+            STORE   GR0,$fb
+            STORE   GR0,$fc
+            STORE   GR0,$fd
+            STORE   GR0,$fe
+            STORE   GR0,$ff
+            STORE   GR0,$ee
+            STORE   GR0,$ed
+            STORE   GR0,$ea
 START       STORE   GR3,$ee         ; -------------------------------
             LOAD    GR0,$ee         ; Spara klockan till minne och
             ADD     GR0,#0A         ; addera 10 till starttiden

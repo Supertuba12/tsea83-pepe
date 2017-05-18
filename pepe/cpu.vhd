@@ -7,7 +7,6 @@ entity CPU is
   port(clk          : in std_logic;
        rst          : in std_logic;
        movement_in  : in unsigned(2 downto 0);
-       rnd_out       : out unsigned(3 downto 0);
        move_pepe    : out unsigned(2 downto 0);
        vga_in           : in unsigned(15 downto 0);
        vga_out          : out unsigned(15 downto 0)
@@ -71,7 +70,7 @@ architecture Behavioral of CPU is
   signal O        : std_logic             := '0'; -- O = 1 if operation in ALU caused overflow
   -- General signals
   signal counter  : unsigned(31 downto 0) := to_unsigned(0, 32);   
-  signal KBD_en_pre : std_logic;
+  --signal KBD_en_pre : std_logic;
 
 begin
   GR2 <= vga_in;
@@ -79,14 +78,16 @@ begin
   -- real time counter
   process(clk)
   begin
-    if rst = '1' then
-      counter <= (others => '0');
-      GR3 <= (others => '0');
-    elsif rising_edge(clk) then
-      counter <= counter + 1;
-      if counter = 1000000 then
-        GR3 <= GR3 + 1;
+    if rising_edge(clk) then
+      if rst = '1' then
         counter <= (others => '0');
+        GR3 <= (others => '0');
+      else
+        counter <= counter + 1;
+        if counter = 1000000 then
+          GR3 <= GR3 + 1;
+          counter <= (others => '0');
+        end if;
       end if;
     end if;
   end process;
@@ -132,8 +133,7 @@ begin
   end process;
 
   -- PC : Program Counter
-  process(clk)
-  begin
+  process(clk) begin
     if rising_edge(clk) then
       if (rst = '1') then
         PC <= (others => '0');
@@ -148,8 +148,7 @@ begin
   end process;
 
   -- IR : Instruction Register
-  process(clk)
-  begin
+  process(clk) begin
     if rising_edge(clk) then
       if (rst = '1') then
         IR <= (others => '0');
@@ -160,8 +159,7 @@ begin
   end process;
 
   -- ASR : Address Register
-  process(clk)
-  begin
+  process(clk) begin
     if rising_edge(clk) then
       if (rst = '1') then
         ASR <= (others => '0');
@@ -172,32 +170,32 @@ begin
   end process;
 
   -- ALU component
-  process(clk)
-  begin
+  process(clk) begin
     if rising_edge(clk) then
       if (rst = '1') then
         AR <= (others => '0');
+      else
+        case ALU is
+          when "001" => -- AR := BUSS
+            AR <= DATA_BUS;
+          when "010" => -- SYNC
+            move_pepe <= movement_in;
+          when "011" => -- AR := 0
+            AR <= to_unsigned(0, 16);
+          when "100" => -- AR := AR + BUSS
+            AR_pre <= AR;
+            AR <= AR + DATA_BUS;
+          when "101" => -- AR := AR - BUSS
+            AR_pre <= AR;
+            AR <= AR - DATA_BUS; 
+          when "110" => -- AR := AR && BUSS
+            AR <= AR and DATA_BUS;
+          when "111" => -- AR := AR || BUSS
+            AR <= AR or DATA_BUS;
+          when others => -- NOP
+            null;
+        end case;
       end if;
-      case ALU is
-        when "001" => -- AR := BUSS
-          AR <= DATA_BUS;
-        when "010" => -- SYNC
-          move_pepe <= movement_in;
-        when "011" => -- AR := 0
-          AR <= to_unsigned(0, 16);
-        when "100" => -- AR := AR + BUSS
-          AR_pre <= AR;
-          AR <= AR + DATA_BUS;
-        when "101" => -- AR := AR - BUSS
-          AR_pre <= AR;
-          AR <= AR - DATA_BUS; 
-        when "110" => -- AR := AR && BUSS
-          AR <= AR and DATA_BUS;
-        when "111" => -- AR := AR || BUSS
-          AR <= AR or DATA_BUS;
-        when others => -- NOP
-          null;
-      end case;
     end if;
   end process;  
   
@@ -206,8 +204,7 @@ begin
   O <= '1' when ((AR_pre(15 downto 15) = DATA_BUS(15 downto 15)) and (AR(15 downto 15) /= (AR_pre(15 downto 15)))) else '0';
 
  -- General registers 
-  process(clk)
-  begin
+  process(clk) begin
     if rising_edge(clk) then
       if rst = '1' then
         GR1 <= (others => '0');

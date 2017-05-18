@@ -342,6 +342,10 @@ x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"0
 
 begin  -- scoreMem
   index <= (to_integer(tileIndex)*256 + (y*16) + x); -- to_int may not be needed
-  data_out <= highscoreMem(to_integer(index));
+  process(clk) begin
+    if rising_edge(clk) then
+      data_out <= highscoreMem(to_integer(index));
+    end if;
+  end process;
 end Behavioral;
  

@@ -50,8 +50,7 @@ x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"00", x"0
 
 begin
   index <= ((y_coord)*32) + (x_coord);
-  process(clk)
-  begin
+  process(clk) begin
     if rising_edge(clk) then
       if index >= 0 and index <= 1023 then
         data_out_sprite <= spriteMem(to_integer(index));
@@ -60,3 +59,4 @@ begin
   end process;
 
 end Behavioral;
+
