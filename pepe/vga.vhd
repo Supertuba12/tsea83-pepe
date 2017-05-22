@@ -45,7 +45,7 @@ architecture Behavioral of VGA is
   signal  time_clk        : unsigned(0 downto 0)          := (others => '0');       -- When the screen should scroll
   signal  game_enable     : std_logic                     := '0';                   -- Game only progress on rising_edge of time_clk
   signal  blank           : std_logic                     := '0';                   -- blanking signal
-  signal  xtile           : unsigned(6 downto 0)          := to_unsigned(0, 7);
+  signal  xtile           : unsigned(6 downto 0)          := to_unsigned(0, 7);     
   signal  x_out           : unsigned(9 downto 0)          := to_unsigned(0, 10);
   signal  X_pixel_h       : unsigned(6 downto 0)          := to_unsigned(0, 7);
   signal  Y_pixel_h       : unsigned(6 downto 0)          := to_unsigned(0, 7);
@@ -59,9 +59,9 @@ architecture Behavioral of VGA is
   signal  score_num_id    : unsigned(15 downto 0)         := to_unsigned(0, 16);
   signal  rng             : unsigned(3 downto 0)          := (others => '0');
   signal  dead            : std_logic                     := '0';
-  signal  tile_index_s    : unsigned(4 downto 0)          := to_unsigned(0, 5);
-  signal  tile_index_d    : unsigned(4 downto 0)          := to_unsigned(0, 5);
-  signal bajs             : std_logic;
+  signal  tile_index_s    : unsigned(4 downto 0)          := to_unsigned(0, 5);     -- tile index used when alive
+  signal  tile_index_d    : unsigned(4 downto 0)          := to_unsigned(0, 5);     -- tile index used when dead    
+  signal score_saved      : std_logic                     := '0';                   -- 1 if score has been saved
   
   type lut_t is array (11 downto 0) of unsigned(3 downto 0);
   type lut_2d is array (4 downto 0) of lut_t;
@@ -441,30 +441,30 @@ end process;
 
  process(clk) begin
     if rising_edge(clk) then
-      if rst = '1' and bajs = '0' then
+      if rst = '1' and score_saved = '0' then
         if index_save(1) > highscore_lut(0)(1) then
           highscore_lut <= highscore_lut(3 downto 0) & index_save;
-          bajs <= '1';
+          score_saved <= '1';
         elsif index_save(1) = highscore_lut(0)(1) then
           if index_save(2) > highscore_lut(0)(2) then
             highscore_lut <= highscore_lut(3 downto 0) & index_save;
-            bajs <= '1';
+            score_saved <= '1';
           elsif index_save(2) = highscore_lut(0)(2) then
             if index_save(3) > highscore_lut(0)(3) then
               highscore_lut <= highscore_lut(3 downto 0) & index_save;
-              bajs <= '1';
+              score_saved <= '1';
             elsif index_save(3) = highscore_lut(0)(3) then
               if index_save(4) > highscore_lut(0)(4) then
                 highscore_lut <= highscore_lut(3 downto 0) & index_save;
-                bajs <= '1';
+                score_saved <= '1';
               elsif index_save(4) = highscore_lut(0)(4) then
                 if index_save(5) > highscore_lut(0)(5) then
                   highscore_lut <= highscore_lut(3 downto 0) & index_save;
-                  bajs <= '1';
+                  score_saved <= '1';
                 elsif index_save(5) = highscore_lut(0)(5) then
                   if index_save(6) >= highscore_lut(0)(6) then
                     highscore_lut <= highscore_lut(3 downto 0) & index_save;
-                    bajs <= '1';
+                    score_saved <= '1';
                   end if;
                 end if;
               end if;
@@ -472,7 +472,7 @@ end process;
           end if;
         end if;
       elsif rst = '0' then
-        bajs <= '0';
+        score_saved <= '0';
       end if;
     end if;
   end process;
