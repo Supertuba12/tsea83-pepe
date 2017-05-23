@@ -1,9 +1,3 @@
-"""
-    16-bit byte code:  |A |B C D        |
-                       |OP|GRX + M + ADR|
-    Bit size:          |4 | 2  + 1 + 9  |
-"""
-
 """ Commented output for debugging """
 COMMENTS = False
 
@@ -71,42 +65,42 @@ def print_format(output):
 
 
 def load(line, opcodes, adrmodes, adr):
-    """ ~ Standard LOAD ~ GRx,(#X/$Y) """
+    """   Standard LOAD   GRx,(#X/$Y) """
     return double_arg_op(line, opcodes, adrmodes, adr, 'LOAD')
 
 
 def store(line, opcodes, adrmodes, adr):
-    """ ~ Standard STORE ~ GRx,(#X/$Y) """
+    """   Standard STORE   GRx,(#X/$Y) """
     return double_arg_op(line, opcodes, adrmodes, adr, 'STORE')
 
 
 def add(line, opcodes, adrmodes, adr):
-    """ ~ Standard ADD ~ GRx,(#X/$Y) """
+    """   Standard ADD   GRx,(#X/$Y) """
     return double_arg_op(line, opcodes, adrmodes, adr, 'ADD')
 
 
 def sub(line, opcodes, adrmodes, adr):
-    """ ~ Standard SUB ~ GRx,(#X/$Y) """
+    """   Standard SUB   GRx,(#X/$Y) """
     return double_arg_op(line, opcodes, adrmodes, adr, 'SUB')
 
 
 def op_cmp(line, opcodes, adrmodes, adr):
-    """ ~ Standard CMP ~ GRx,(#X/$Y) """
+    """   Standard CMP   GRx,(#X/$Y) """
     return double_arg_op(line, opcodes, adrmodes, adr, 'CMP')
 
 
 def bge(line, opcodes, subr):
-    """ ~ Standard BGE ~ SUBROUTINE """
+    """   Standard BGE   SUBROUTINE """
     return single_arg_op(line, opcodes, subr, 'BGE')
 
 
 def op_and(line, opcodes, adrmodes, adr):
-    """ ~ Standard CMP ~ GRx,(#X/$Y) """
+    """   Standard CMP   GRx,(#X/$Y) """
     return double_arg_op(line, opcodes, adrmodes, adr, 'AND')
 
 
 def halt(opcodes):
-    """ ~ HALT ~ """
+    """   HALT   """
     if COMMENTS:
         return opcodes['HALT'] + "000; HALT"
     else:
@@ -114,12 +108,12 @@ def halt(opcodes):
 
 
 def jmp(line, opcodes, subr):
-    """ ~ Standard JMP ~ SUBROUTINE """
+    """   Standard JMP   SUBROUTINE """
     return single_arg_op(line, opcodes, subr, 'JMP')
 
 
 def move(line, opcodes, subr):
-    """ ~ SYNC - ADROP """
+    """   SYNC - ADROP """
     if COMMENTS:
         return opcodes['MOVE'] + format(int(line[0]), '03x') + "; MOVE"
     else:

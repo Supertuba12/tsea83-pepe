@@ -1,5 +1,5 @@
 """
-    ~ Assembler for TSEA83 project ~
+      Assembler for TSEA83 project  
     Run with: python3 -c 'from assemble import *; assemble("example", "settings")'
           or: python3 assemble.py example settings
 
