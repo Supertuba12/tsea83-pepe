@@ -22,40 +22,40 @@ architecture Behavioral of VGA is
   signal  data            : std_logic_vector(7 downto 0)  := "00000000";      -- VGA data from RAM
   signal  sprite_data     : std_logic_vector(7 downto 0)  := "00000000";      -- VGA data from SpriteMem
   signal  highScore_data  : std_logic_vector(7 downto 0)  := "00000000";      -- VGA data from HighscoreMem
-  signal  x_pixel         : unsigned(9 downto 0)          := (others => '0')  -- Horizontal pixel counter
-  signal  y_pixel         : unsigned(9 downto 0)          := (others => '0')  -- Vertical pixel counter
-  signal  clk_div         : unsigned(1 downto 0)          := (others => '0')  -- Clock divisor, to generate 25 MHz signal
+  signal  x_pixel         : unsigned(9 downto 0)          := (others => '0'); -- Horizontal pixel counter
+  signal  y_pixel         : unsigned(9 downto 0)          := (others => '0'); -- Vertical pixel counter
+  signal  clk_div         : unsigned(1 downto 0)          := (others => '0'); -- Clock divisor, to generate 25 MHz signal
   signal  clk_25          : std_logic                     := '0';             -- One pulse width 25 MHz signal
-  signal  x_p             : unsigned(6 downto 0)          := (others => '0')  -- X signal for RAM
-  signal  y_p             : unsigned(6 downto 0)          := (others => '0')  -- Y signal for RAM
-  signal  x_h             : unsigned(6 downto 0)          := (others => '0')  -- X signal for HighscoreMem
-  signal  y_h             : unsigned(6 downto 0)          := (others => '0')  -- Y signal for HighscoreMem
+  signal  x_p             : unsigned(6 downto 0)          := (others => '0'); -- X signal for RAM
+  signal  y_p             : unsigned(6 downto 0)          := (others => '0'); -- Y signal for RAM
+  signal  x_h             : unsigned(6 downto 0)          := (others => '0'); -- X signal for HighscoreMem
+  signal  y_h             : unsigned(6 downto 0)          := (others => '0'); -- Y signal for HighscoreMem
   signal  vga_data        : std_logic_vector(7 downto 0)  := "00000000";      -- VGA data for screen output
-  signal  home            : unsigned(3 downto 0)          := (others => '0')  -- Home pointer for lut
-  signal  home_cp         : unsigned(3 downto 0)          := (others => '0')  -- Copy of home used decide block index in RAM
-  signal  start_y_p       : unsigned(2 downto 0)          := (others => '0')  -- Home pointer for which y_pixel to start from
-  signal  start_y_p_cp    : unsigned(2 downto 0)          := (others => '0')  -- Mutable copy of start_y_p
-  signal  y_tile          : unsigned(6 downto 0)          := (others => '0')  -- Home pointer for which Ytile to start from
-  signal  y_tile_cp       : unsigned(6 downto 0)          := (others => '0')  -- Mutable copy of y_tile
-  signal  tile_index      : unsigned(4 downto 0)          := (others => '0')  -- Which block to choose from RAM
+  signal  home            : unsigned(3 downto 0)          := (others => '0'); -- Home pointer for lut
+  signal  home_cp         : unsigned(3 downto 0)          := (others => '0'); -- Copy of home used decide block index in RAM
+  signal  start_y_p       : unsigned(2 downto 0)          := (others => '0'); -- Home pointer for which y_pixel to start from
+  signal  start_y_p_cp    : unsigned(2 downto 0)          := (others => '0'); -- Mutable copy of start_y_p
+  signal  y_tile          : unsigned(6 downto 0)          := (others => '0'); -- Home pointer for which Ytile to start from
+  signal  y_tile_cp       : unsigned(6 downto 0)          := (others => '0'); -- Mutable copy of y_tile
+  signal  tile_index      : unsigned(4 downto 0)          := (others => '0'); -- Which block to choose from RAM
   signal  time_clk        : unsigned(0 downto 0)          := (others => '0'); -- When the screen should scroll
   signal  game_enable     : std_logic                     := '0';             -- Game only progress on rising_edge of time_clk
   signal  blank           : std_logic                     := '0';             -- blanking signal
-  signal  xtile           : unsigned(6 downto 0)          := (others => '0')  -- Which horizontal tile to choose from RAM
-  signal  x_out           : unsigned(9 downto 0)          := (others => '0')  -- Horizontal pixel in SpriteMem
-  signal  x_pixel_h       : unsigned(6 downto 0)          := (others => '0')  -- Horizontal pixel in HighscoreMem
-  signal  y_pixel_h       : unsigned(6 downto 0)          := (others => '0')  -- Vertical pixel in HighscoreMem
-  signal  y_out           : unsigned(9 downto 0)          := (others => '0')  -- Vertical pixel in SpriteMem
+  signal  xtile           : unsigned(6 downto 0)          := (others => '0'); -- Which horizontal tile to choose from RAM
+  signal  x_out           : unsigned(9 downto 0)          := (others => '0'); -- Horizontal pixel in SpriteMem
+  signal  x_pixel_h       : unsigned(6 downto 0)          := (others => '0'); -- Horizontal pixel in HighscoreMem
+  signal  y_pixel_h       : unsigned(6 downto 0)          := (others => '0'); -- Vertical pixel in HighscoreMem
+  signal  y_out           : unsigned(9 downto 0)          := (others => '0'); -- Vertical pixel in SpriteMem
   signal  x_pepe          : unsigned(9 downto 0)          := "0110101000";    -- Horizontal position of player
   signal  y_pepe          : unsigned(9 downto 0)          := "0111000000";    -- Vertical position of player
-  signal  counter         : unsigned(19 downto 0)         := (others => '0')  -- 20-bit counter
-  signal  index_h         : unsigned(4 downto 0)          := (others => '0')  -- Which number or letter from HighscoreMem
-  signal  home_pre        : unsigned(3 downto 0)          := (others => '0')  -- Previous value of Home
-  signal  score_out_s     : unsigned(15 downto 0)         := (others => '0')  -- Signal copy of score_out used for indexing
+  signal  counter         : unsigned(19 downto 0)         := (others => '0'); -- 20-bit counter
+  signal  index_h         : unsigned(4 downto 0)          := (others => '0'); -- Which number or letter from HighscoreMem
+  signal  home_pre        : unsigned(3 downto 0)          := (others => '0'); -- Previous value of Home
+  signal  score_out_s     : unsigned(15 downto 0)         := (others => '0'); -- Signal copy of score_out used for indexing
   signal  rng             : unsigned(3 downto 0)          := (others => '0'); -- Random number for choosing next block
   signal  dead            : std_logic                     := '0';             -- If player is dead
-  signal  tile_index_s    : unsigned(4 downto 0)          := (others => '0')  -- tile index used when alive
-  signal  tile_index_d    : unsigned(4 downto 0)          := (others => '0')  -- tile index used when dead    
+  signal  tile_index_s    : unsigned(4 downto 0)          := (others => '0'); -- tile index used when alive
+  signal  tile_index_d    : unsigned(4 downto 0)          := (others => '0'); -- tile index used when dead    
   signal  score_saved     : std_logic                     := '0';             -- 1 if score has been saved
   
   type lut_t  is array (11 downto 0)  of unsigned(3 downto 0);
