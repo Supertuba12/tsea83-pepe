@@ -223,6 +223,7 @@ begin
     end if;
   end process;
 
+  -- This process handles the writing of rng into the correct spot in lut.
   process(clk) begin
     if rising_edge(clk) then
       if rst = '1' then
