@@ -1,14 +1,21 @@
 #!usr/bin/python3
+"""
+Block builder used in TSEA83 project. Takes an excel document and 
+translates standard 6-digit hex color codes to 2-digit codes.
+USAGE: python(3) block_builder.py [FILE] [START CELL] [END CELL]
+"""
 
 import sys
 import openpyxl
 from openpyxl import load_workbook
 
 xlsx_file = sys.argv[1]
+start = sys.argv[2]
+end = sys.argv[3]
 with open("blocks", "w+") as fd:
     ws = load_workbook(filename=xlsx_file).active
     i = 0
-    cell_range = ws['A1':'AX108']
+    cell_range = ws[start:end]
     for col in cell_range:
         for cell in col:
             i += 1
