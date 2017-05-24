@@ -1,7 +1,3 @@
---------------------------------------------------------------------------------
--- vga
--- MAJOR WIP
--- library declaration
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;            -- basic IEEE library
 use IEEE.NUMERIC_STD.ALL;               -- IEEE library for the unsigned type
@@ -180,9 +176,9 @@ begin
             start_y_p_cp <= start_y_p_cp + 1;
             if start_y_p_cp = 0 then
               if y_tile_cp = 5 then
-                y_tile_cp <= "0000000";
+                y_tile_cp <= (others => '0');
                 if home_cp = 11 then
-                  home_cp <= "0000";
+                  home_cp <= (others => '0');
                 else
                   home_cp <= home_cp + 1;
                 end if;
@@ -427,12 +423,11 @@ end process;
       to_unsigned(16, 5)             when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 0 else
       to_unsigned(17, 5)             when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 0 else
       to_unsigned(18, 5)             when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 0 else
-      "0" & index_save(1)            when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 1 else
-      "0" & index_save(2)            when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 1 else
-      "0" & index_save(3)            when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 1 else
-      "0" & index_save(4)            when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 1 else
-      "0" & index_save(5)            when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 1 else
-      "0" & index_save(6)            when x_pixel(8 downto 4) = 10 and y_pixel(8 downto 4) = 1 else
+      "0" & index_save(2)            when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 1 else
+      "0" & index_save(3)            when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 1 else
+      "0" & index_save(4)            when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 1 else
+      "0" & index_save(5)            when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 1 else
+      "0" & index_save(6)            when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 1 else
       to_unsigned(10, 5)             when x_pixel(8 downto 4) = 3 and y_pixel(8 downto 4) = 3 else
       to_unsigned(11, 5)             when x_pixel(8 downto 4) = 4 and y_pixel(8 downto 4) = 3 else
       to_unsigned(12, 5)             when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 3 else
@@ -443,40 +438,11 @@ end process;
       to_unsigned(17, 5)             when x_pixel(8 downto 4) = 10 and y_pixel(8 downto 4) = 3 else
       to_unsigned(18, 5)             when x_pixel(8 downto 4) = 11 and y_pixel(8 downto 4) = 3 else
       to_unsigned(1, 5)              when x_pixel(8 downto 4) = 2 and y_pixel(8 downto 4) = 5 else
-      "0" & highscore_lut(0)(1)      when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 5 else
-      "0" & highscore_lut(0)(2)      when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 5 else
-      "0" & highscore_lut(0)(3)      when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 5 else
-      "0" & highscore_lut(0)(4)      when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 5 else
-      "0" & highscore_lut(0)(5)      when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 5 else
-      "0" & highscore_lut(0)(6)      when x_pixel(8 downto 4) = 10 and y_pixel(8 downto 4) = 5 else
-      to_unsigned(2, 5)              when x_pixel(8 downto 4) = 2 and y_pixel(8 downto 4) = 6 else
-      "0" & highscore_lut(1)(1)      when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 6 else
-      "0" & highscore_lut(1)(2)      when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 6 else
-      "0" & highscore_lut(1)(3)      when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 6 else
-      "0" & highscore_lut(1)(4)      when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 6 else
-      "0" & highscore_lut(1)(5)      when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 6 else
-      "0" & highscore_lut(1)(6)      when x_pixel(8 downto 4) = 10 and y_pixel(8 downto 4) = 6 else
-      to_unsigned(3, 5)              when x_pixel(8 downto 4) = 2 and y_pixel(8 downto 4) = 7 else
-      "0" & highscore_lut(2)(1)      when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 7 else
-      "0" & highscore_lut(2)(2)      when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 7 else
-      "0" & highscore_lut(2)(3)      when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 7 else
-      "0" & highscore_lut(2)(4)      when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 7 else
-      "0" & highscore_lut(2)(5)      when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 7 else
-      "0" & highscore_lut(2)(6)      when x_pixel(8 downto 4) = 10 and y_pixel(8 downto 4) = 7 else
-      to_unsigned(4, 5)              when x_pixel(8 downto 4) = 2 and y_pixel(8 downto 4) = 8 else
-      "0" & highscore_lut(3)(1)      when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 8 else
-      "0" & highscore_lut(3)(2)      when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 8 else
-      "0" & highscore_lut(3)(3)      when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 8 else
-      "0" & highscore_lut(3)(4)      when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 8 else
-      "0" & highscore_lut(3)(5)      when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 8 else
-      "0" & highscore_lut(3)(6)      when x_pixel(8 downto 4) = 10 and y_pixel(8 downto 4) = 8 else
-      to_unsigned(5, 5)              when x_pixel(8 downto 4) = 2 and y_pixel(8 downto 4) = 9 else
-      "0" & highscore_lut(4)(1)      when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 9 else
-      "0" & highscore_lut(4)(2)      when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 9 else
-      "0" & highscore_lut(4)(3)      when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 9 else
-      "0" & highscore_lut(4)(4)      when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 9 else
-      "0" & highscore_lut(4)(5)      when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 9 else
-      "0" & highscore_lut(4)(6)      when x_pixel(8 downto 4) = 10 and y_pixel(8 downto 4) = 9 else
+      "0" & highscore_lut(0)(2)      when x_pixel(8 downto 4) = 5 and y_pixel(8 downto 4) = 5 else
+      "0" & highscore_lut(0)(3)      when x_pixel(8 downto 4) = 6 and y_pixel(8 downto 4) = 5 else
+      "0" & highscore_lut(0)(4)      when x_pixel(8 downto 4) = 7 and y_pixel(8 downto 4) = 5 else
+      "0" & highscore_lut(0)(5)      when x_pixel(8 downto 4) = 8 and y_pixel(8 downto 4) = 5 else
+      "0" & highscore_lut(0)(6)      when x_pixel(8 downto 4) = 9 and y_pixel(8 downto 4) = 5 else
       to_unsigned(19, 5);
 
   -- VGA generation
